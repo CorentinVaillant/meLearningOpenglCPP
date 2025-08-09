@@ -6,11 +6,12 @@
 
 class Program
 {
-	GLint m_program;
 	Shader m_vert, m_frag;
+	GLint m_program;
 
 public:
 	Program(Shader&& vert_shad, Shader&& frag_shad);
+	Program(const char* vert_shad_src, const char* frag_shad_src);
 
 	const Shader& getVertShader() const;
 	const Shader& getFragShader() const;
@@ -35,6 +36,7 @@ public:
 
 	void useProgram();
 	void deleteProgram();
+	void deleteShaders();
 
 
 	~Program();

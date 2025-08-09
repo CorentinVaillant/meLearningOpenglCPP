@@ -5,9 +5,13 @@
 Program::Program(Shader&& vert_shad, Shader&& frag_shad)
     : m_vert(std::move(vert_shad)), m_frag(std::move(frag_shad)), m_program(0) {}
 
+Program::Program(const char* vert_shad_src, const char* frag_shad_src)
+    : m_vert(VertexShader(vert_shad_src)), m_frag(FragmentShader(frag_shad_src)), m_program(0) {}
+
+
 Program::~Program() {
     if (m_program != 0) {
-        glDeleteProgram(m_program);
+        glDeleteProgram(m_program); //I think there is a segfault here
     }
 }
 
@@ -23,6 +27,11 @@ void Program::deleteProgram() {
         glDeleteProgram(m_program);
         m_program = 0;
     }
+}
+
+void Program::deleteShaders() {
+    m_frag.deleteShader();
+    m_vert.deleteShader();
 }
 
 const Shader& Program::getVertShader() const{
