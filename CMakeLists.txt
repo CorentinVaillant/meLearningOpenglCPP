@@ -18,7 +18,11 @@ target_compile_options(compiler_flags INTERFACE
 add_subdirectory(lib/glfw)
 
 # Main project
-add_executable(MeLearningOpengl src/main.cpp)
+add_executable(MeLearningOpengl 
+    src/main.cpp
+    src/glad.c
+    src/app.cpp
+)
 
 target_include_directories(MeLearningOpengl PUBLIC
     "${PROJECT_BINARY_DIR}"
