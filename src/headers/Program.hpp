@@ -12,6 +12,7 @@ class Program
 public:
 	Program(Shader&& vert_shad, Shader&& frag_shad);
 	Program(const char* vert_shad_src, const char* frag_shad_src);
+	Program(Program&& rvalue);
 
 	const Shader& getVertShader() const;
 	const Shader& getFragShader() const;

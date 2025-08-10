@@ -44,7 +44,7 @@ Shader& Shader::operator=(Shader&& other) noexcept {
 
 //-- Destructor --
 Shader::~Shader() {
-    glDeleteShader(m_shader_type);
+    deleteShader();
 }
 
 //-- Methods --

@@ -2,14 +2,62 @@
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <glm/vec2.hpp>
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/quaternion.hpp>
+
+#include <iostream>
+
+#include "app.hpp"
+#include "Program.hpp"
+#include "macros.hpp"
+#include "Camera.hpp"
 
 
-// -- Callbacks --
-extern void framebuffer_size_callback(GLFWwindow* , int width, int height);  
+class App
+{
+private:
+    static App s_App;
 
-// -- Updates --
-extern void processInput(GLFWwindow *window);
+    GLFWwindow * m_window;
 
-// -- Utils --
-extern glm::vec2 getResolution(GLFWwindow *window);
+    GLuint m_VAO,m_VBO; 
+
+    GLuint m_texture1,m_texture2;
+    Program m_program;
+    PerspectiveCamera m_camera;
+
+    double m_lastFrame;
+    double m_dt;
+    
+public:
+    // -- Making the class a singleton --
+    static App& getInsteance();
+    static void init();
+    static void run();
+    
+    // -- deleting methods -- 
+    App(const App&) = delete; 
+    
+    ~App();
+private:
+    App();
+    void initGlfw();
+    void initWindow();
+    void _init();
+
+    void _run();
+
+    
+    // -- Callbacks --
+    static void framebuffer_size_callback(GLFWwindow* , int width, int height);  
+    
+    // -- Updates --
+    void processInput(GLFWwindow *window);
+    
+    // -- Utils --
+    glm::vec2 getResolution(GLFWwindow *window);
+    
+};

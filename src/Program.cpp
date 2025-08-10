@@ -3,15 +3,23 @@
 #include <string>
 
 Program::Program(Shader&& vert_shad, Shader&& frag_shad)
-    : m_vert(std::move(vert_shad)), m_frag(std::move(frag_shad)), m_program(0) {}
+    : m_vert(std::move(vert_shad)), m_frag(std::move(frag_shad)), m_program(0) 
+    {}
 
 Program::Program(const char* vert_shad_src, const char* frag_shad_src)
-    : m_vert(VertexShader(vert_shad_src)), m_frag(FragmentShader(frag_shad_src)), m_program(0) {}
+    : m_vert(VertexShader(vert_shad_src)), m_frag(FragmentShader(frag_shad_src)), m_program(0) 
+    {}
+
+Program::Program(Program&& rvalue)
+    : m_vert(std::move(rvalue.m_vert)), 
+    m_frag(std::move(rvalue.m_frag)), 
+    m_program(rvalue.m_program) 
+    {}
 
 
 Program::~Program() {
     if (m_program != 0) {
-        glDeleteProgram(m_program); //I think there is a segfault here
+        glDeleteProgram(m_program);
     }
 }
 

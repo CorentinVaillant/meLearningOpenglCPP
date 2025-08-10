@@ -15,6 +15,7 @@ private:
 
 public:
     // -- Constructors --
+    PerspectiveCamera();
     PerspectiveCamera(float fov, float aspect, float near, float far);
     PerspectiveCamera(float fov, GLFWwindow *window, float near, float far);
 
@@ -23,6 +24,12 @@ public:
     float getAspect()const;
     float getNear()const;
     float getFar()const;
+
+    // --Setters --
+    void setFov(float rFov);
+    void setAspect(float aspect);
+    void setNear(float near);
+    void setFar(float far);
 
     glm::mat4 getProjectionMat()const;
     glm::mat4 getViewMat()const;
