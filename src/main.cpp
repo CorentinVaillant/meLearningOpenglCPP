@@ -4,6 +4,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/quaternion.hpp>
+
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
@@ -107,20 +109,34 @@ int main() {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glEnable(GL_DEPTH_TEST);  
 
+
+    // - Init values
     PerspectiveCamera camera = PerspectiveCamera(M_PI_4,window, 0.1f,100.0f);
-    glm::mat4 projection = camera.getProjectionMat();
-    
+    camera.setPos(glm::vec3(0.,0.,3.));
+    double lastFrame = glfwGetTime();
+    double dt = 0;
+
     //- App Loop
     while(!glfwWindowShouldClose(window))
     {
+        float time = glfwGetTime();
+        dt = time - lastFrame;
+        lastFrame = time;
+
         //updates
         processInput(window);
+
+        glm::qua camRotation(1.0f,0.0f,0.0f,0.0f);
+        camRotation = glm::rotate(camRotation,M_PI_4f * (float)dt, glm::vec3(0.0f,0.0f,1.0f)); 
+        camera.translate(glm::vec3(sin(time) * dt,0.,0.));
+        camera.rotate(camRotation);
+        glm::mat4 projection = camera.getProjectionMat();
+        glm::mat4 view = camera.getViewMat();
         
         //rendering
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
-        glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f,0.0f,-3.0f));
         
         
         program.useProgram();
@@ -134,7 +150,6 @@ int main() {
         glBindTexture(GL_TEXTURE_2D, texture2);
         glBindVertexArray(VAO);
 
-        float time = glfwGetTime();
         for(int i(0); i< CUBE_POSITION_NUMBER; i++){
             glm::mat4 model = glm::mat4(1.0f);
             model = glm::translate(model, cubePositions[i]);
