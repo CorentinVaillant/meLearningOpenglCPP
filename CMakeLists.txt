@@ -30,6 +30,7 @@ add_executable(MeLearningOpengl
 
 target_include_directories(MeLearningOpengl PUBLIC
     "${PROJECT_BINARY_DIR}"
+    "${PROJECT_SOURCE_DIR}/lib/"
     "${PROJECT_SOURCE_DIR}/lib/glfw/include"
     "${PROJECT_SOURCE_DIR}/src/include"
     "${PROJECT_SOURCE_DIR}/src/headers"
@@ -40,3 +41,26 @@ target_link_libraries(MeLearningOpengl PUBLIC
     compiler_flags
     dl
 )
+
+# Shaders source
+set(SHADER_DIR "${PROJECT_SOURCE_DIR}/src/shaders")
+set(GENERATED_DIR "${CMAKE_BINARY_DIR}/src/generated_shaders")
+file(MAKE_DIRECTORY "${GENERATED_DIR}")
+
+function(embed_shader shader_file var_name)
+    get_filename_component(shader_name ${shader_file} NAME)
+    set(output_file "${GENERATED_DIR}/${shader_name}.cpp")
+
+    file(READ ${shader_file} shader_content)
+    # Escape backslashes and quotes for C++ string
+    string(REPLACE "\\" "\\\\" shader_content "${shader_content}")
+    string(REPLACE "\"" "\\\"" shader_content "${shader_content}")
+    string(REPLACE "\n" "\\n\"\n\"" shader_content "${shader_content}")
+
+    file(WRITE ${output_file} "const char* ${var_name} = \"${shader_content}\";\n")
+    set_source_files_properties(${output_file} PROPERTIES GENERATED TRUE)
+    target_sources(MeLearningOpengl PRIVATE ${output_file})    
+endfunction()
+
+embed_shader("${SHADER_DIR}/triangle.frag" "triangleFragShaderSrc")
+embed_shader("${SHADER_DIR}/triangle.vert" "triangleVertShaderSrc")
