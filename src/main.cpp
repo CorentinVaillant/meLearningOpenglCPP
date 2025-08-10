@@ -1,15 +1,19 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
 
 #include <iostream>
 
-#include "macros.hpp"
 #include "app.hpp"
-#include "constants.hpp"
 #include "Program.hpp"
+#include "macros.hpp"
+#include "constants.hpp"
 
 using std::move;
 
@@ -51,16 +55,13 @@ int main() {
     glEnableVertexAttribArray(1);
 
     // - Init EBO (element buffer object)
-    GLuint EBO;
-    glGenBuffers(1,&EBO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    // GLuint EBO;
+    // glGenBuffers(1,&EBO);
+    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    // glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     //- Init Program and Shader
     Program program = Program(triangleVertShaderSrc,triangleFragShaderSrc);
-    
-    // - Draw parameters
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
     // - Loading Texture
     stbi_set_flip_vertically_on_load(true);
@@ -99,9 +100,11 @@ int main() {
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width_text2, height_text2, 0, GL_RGBA, GL_UNSIGNED_BYTE, data_text2);
     glGenerateMipmap(GL_TEXTURE_2D);
 
-
-
     stbi_image_free(data_text2);
+
+    // - Draw parameters
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glEnable(GL_DEPTH_TEST);  
     
     //- App Loop
     while(!glfwWindowShouldClose(window))
@@ -111,24 +114,38 @@ int main() {
         
         //rendering
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
-        int screenWidth, screenHeigth;
-        glfwGetWindowSize(window,&screenWidth, &screenHeigth);
-        float screenSize[2] = {(float) screenWidth, (float) screenHeigth};
+        glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f,0.0f,-3.0f));
+        
+        glm::vec2 resolution = getResolution(window);
+        float aspect = resolution.x / resolution.y;
+        const float PI_4 = glm::pi<float>() / 4.0f; 
+        glm::mat4 projection = glm::perspective(PI_4,aspect,0.1f,100.0f );
         
         program.useProgram();
-        program.setUniform2f("resolution", screenSize);
         program.setUniform1i("texture1",0);
         program.setUniform1i("texture2",1);
+        program.setUniformMat4fv("projection",glm::value_ptr(projection));
         
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture1);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, texture2);
         glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_INT,0);
 
+        float time = glfwGetTime();
+        for(int i(0); i< CUBE_POSITION_NUMBER; i++){
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, cubePositions[i]);
+            float rotation = sin((float)(i + 1)) * time; 
+            model = glm::rotate(model, rotation, glm::vec3(1.0f, 0.3f, 0.5f));
+            
+            glm::mat4 viewModel= view * model;
+            program.setUniformMat4fv("viewModel",glm::value_ptr(viewModel));
+
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
         glBindVertexArray(0);
         
         //check and call events and swap the buffers

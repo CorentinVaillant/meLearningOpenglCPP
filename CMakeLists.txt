@@ -17,6 +17,9 @@ target_compile_options(compiler_flags INTERFACE
 # Add GLFW
 add_subdirectory(lib/glfw)
 
+# Add glm
+add_subdirectory(lib/glm)
+
 # Main project
 add_executable(MeLearningOpengl 
     src/glad.c
@@ -25,6 +28,7 @@ add_executable(MeLearningOpengl
     src/app.cpp
     src/Program.cpp
     src/Shader.cpp
+    src/Camera.cpp
 
 )
 
@@ -32,12 +36,15 @@ target_include_directories(MeLearningOpengl PUBLIC
     "${PROJECT_BINARY_DIR}"
     "${PROJECT_SOURCE_DIR}/lib/"
     "${PROJECT_SOURCE_DIR}/lib/glfw/include"
+    "${PROJECT_SOURCE_DIR}/lib/glm/glm"
+
     "${PROJECT_SOURCE_DIR}/src/include"
     "${PROJECT_SOURCE_DIR}/src/headers"
 )
 
 target_link_libraries(MeLearningOpengl PUBLIC
     glfw
+    glm
     compiler_flags
     dl
 )

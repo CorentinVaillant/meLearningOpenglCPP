@@ -17,3 +17,10 @@ void processInput(GLFWwindow *window)
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 }
+
+// -- Utils --
+glm::vec2 getResolution(GLFWwindow *window){
+    int width, heigth;
+    glfwGetWindowSize(window,&width,&heigth);
+    return glm::vec2((float)width,(float)heigth);
+}
