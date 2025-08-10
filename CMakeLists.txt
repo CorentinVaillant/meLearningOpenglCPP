@@ -29,6 +29,7 @@ add_executable(MeLearningOpengl
     src/Program.cpp
     src/Shader.cpp
     src/Camera.cpp
+    src/Movable.cpp
 
 )
 
@@ -36,7 +37,7 @@ target_include_directories(MeLearningOpengl PUBLIC
     "${PROJECT_BINARY_DIR}"
     "${PROJECT_SOURCE_DIR}/lib/"
     "${PROJECT_SOURCE_DIR}/lib/glfw/include"
-    "${PROJECT_SOURCE_DIR}/lib/glm/glm"
+    "${PROJECT_SOURCE_DIR}/lib/glm"
 
     "${PROJECT_SOURCE_DIR}/src/include"
     "${PROJECT_SOURCE_DIR}/src/headers"

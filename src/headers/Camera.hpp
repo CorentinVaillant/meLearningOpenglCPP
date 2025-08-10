@@ -1,27 +1,18 @@
 #pragma once
 
 #include <GLFW/glfw3.h>
-#include <vec3.hpp>
-#include <quaternion.hpp>
+#include <glm/vec3.hpp>
+#include <glm/gtc/quaternion.hpp>
 
-class Camera
-{
-    virtual void setPos(glm::vec3 pos);
-    virtual void setSize(glm::vec3 size);
-    virtual void setRotation(glm::quat rotation);
+#include "Movable.hpp"
 
-    virtual void translate(glm::vec3 pos);
-    virtual void scale(glm::vec3 scale);
-    virtual void rotate(glm::quat rotation);
-};
-
-
-class PerspectiveCamera
+class PerspectiveCamera : public Transform
 {
 private:
     float m_fov;
     float m_aspect;
     float m_near, m_far;
+
 public:
     // -- Constructors --
     PerspectiveCamera(float fov, float aspect, float near, float far);
@@ -33,6 +24,10 @@ public:
     float getNear()const;
     float getFar()const;
 
+    glm::mat4 getProjectionMat()const;
+    glm::mat4 getViewMat()const;
+    glm::mat4 getProjectionViewMat()const;
+    
     // -- Private methodes --
 private:
     static float windowAspect(GLFWwindow *window);

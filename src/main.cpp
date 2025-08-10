@@ -13,6 +13,7 @@
 #include "app.hpp"
 #include "Program.hpp"
 #include "macros.hpp"
+#include "Camera.hpp"
 #include "constants.hpp"
 
 using std::move;
@@ -105,6 +106,9 @@ int main() {
     // - Draw parameters
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glEnable(GL_DEPTH_TEST);  
+
+    PerspectiveCamera camera = PerspectiveCamera(M_PI_4,window, 0.1f,100.0f);
+    glm::mat4 projection = camera.getProjectionMat();
     
     //- App Loop
     while(!glfwWindowShouldClose(window))
@@ -118,10 +122,6 @@ int main() {
         
         glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f,0.0f,-3.0f));
         
-        glm::vec2 resolution = getResolution(window);
-        float aspect = resolution.x / resolution.y;
-        const float PI_4 = glm::pi<float>() / 4.0f; 
-        glm::mat4 projection = glm::perspective(PI_4,aspect,0.1f,100.0f );
         
         program.useProgram();
         program.setUniform1i("texture1",0);
