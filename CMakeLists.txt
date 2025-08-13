@@ -25,11 +25,13 @@ add_executable(MeLearningOpengl
     src/glad.c
 
     src/main.cpp
-    src/app.cpp
+
+    src/App.cpp
     src/Program.cpp
     src/Shader.cpp
     src/Camera.cpp
     src/Movable.cpp
+    src/Texture.cpp
 
 )
 

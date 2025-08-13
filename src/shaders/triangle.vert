@@ -12,5 +12,6 @@ out vec2 v_uv; // specify a color output to the fragment shader
 void main()
 {
     gl_Position = projection * viewModel * vec4(aPos, 1.0);
+    // gl_Position = vec4(aPos, 1.0);
     v_uv = TextCoord ;
 }

@@ -1,11 +1,6 @@
-#include "app.hpp"
+#include "App.hpp"
 
 #include "constants.hpp"
-
-
-
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb/stb_image.h>
 
 using std::move;
 
@@ -23,6 +18,8 @@ App& App::getInsteance(){
 // -- Init --
 
 App::App():
+    m_texture1("../resources/container.jpg",GL_RGB,GL_RGB),
+    m_texture2("../resources/awesomeface.png",GL_RGBA,GL_RGBA),
     m_program(Program(triangleVertShaderSrc,triangleFragShaderSrc))
     {}
 
@@ -75,41 +72,7 @@ void App::_init(){
     // glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     // - Loading Texture
-    stbi_set_flip_vertically_on_load(true);
 
-    int width_text1, height_text1, nrChannels_text1;
-    unsigned char* data_text1 = stbi_load("../resources/container.jpg", &width_text1, &height_text1, &nrChannels_text1, 0);
-    expect_ptr(data_text1,"could not load the image", -1);
-
-    glGenTextures(1, &m_texture1);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);	
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    glBindTexture(GL_TEXTURE_2D, m_texture1);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width_text1, height_text1, 0, GL_RGB, GL_UNSIGNED_BYTE, data_text1);
-    glGenerateMipmap(GL_TEXTURE_2D);
-
-    stbi_image_free(data_text1);
-
-    int width_text2, height_text2, nrChannels_text2;
-    unsigned char* data_text2 = stbi_load("../resources/awesomeface.png", &width_text2, &height_text2, &nrChannels_text2, 0);
-    expect_ptr(data_text2,"could not load the image", -1);
-
-    glGenTextures(1, &m_texture2);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);	
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    glBindTexture(GL_TEXTURE_2D, m_texture2);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width_text2, height_text2, 0, GL_RGBA, GL_UNSIGNED_BYTE, data_text2);
-    glGenerateMipmap(GL_TEXTURE_2D);
-
-    stbi_image_free(data_text2);
 
     // - Draw parameters
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -152,17 +115,13 @@ void App::_run(){
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
-        m_program.useProgram();
-        m_program.setUniform1i("texture1",0);
-        m_program.setUniform1i("texture2",1);
-        m_program.setUniformMat4fv("projection",glm::value_ptr(projection));
         
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, m_texture1);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, m_texture2);
+        // glActiveTexture(GL_TEXTURE0);
+        // glBindTexture(GL_TEXTURE_2D, m_texture1);
+        // glActiveTexture(GL_TEXTURE1);
+        // glBindTexture(GL_TEXTURE_2D, m_texture2);
         glBindVertexArray(m_VAO);
-
+        
         for(int i(0); i< CUBE_POSITION_NUMBER; i++){
             glm::mat4 model = glm::mat4(1.0f);
             model = glm::translate(model, cubePositions[i]);
@@ -170,15 +129,25 @@ void App::_run(){
             model = glm::rotate(model, rotation, glm::vec3(1.0f, 0.3f, 0.5f));
             
             glm::mat4 viewModel= view * model;
-            m_program.setUniformMat4fv("viewModel",glm::value_ptr(viewModel));
 
+            m_program.clearUniforms();
+            m_program.setUniformTexture2D("texture1",m_texture1);
+            m_program.setUniformTexture2D("texture2",m_texture2);
+            m_program.setUniformMat4fv("projection",glm::value_ptr(projection));
+            m_program.setUniformMat4fv("viewModel",glm::value_ptr(viewModel));
+            
+            m_program.useProgram();
+            
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
         glBindVertexArray(0);
         
         //check and call events and swap the buffers
         glfwSwapBuffers(m_window);
-        glfwPollEvents();    
+        glfwPollEvents();   
+        
+        //check for errors
+        throwOnGlError("error detected after update");
     }
 
 }
@@ -188,8 +157,8 @@ App::~App(){
     glDeleteVertexArrays(1,&m_VAO);
     glDeleteBuffers(1,&m_VBO);
 
-    glDeleteTextures(1,&m_texture1);
-    glDeleteTextures(1,&m_texture2);
+    m_texture1.deleteGlTexture();
+    m_texture2.deleteGlTexture();
 
     m_program.deleteShaders();
     m_program.deleteProgram();

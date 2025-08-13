@@ -10,10 +10,10 @@
 
 #include <iostream>
 
-#include "app.hpp"
 #include "Program.hpp"
 #include "macros.hpp"
 #include "Camera.hpp"
+#include "gl_utils.hpp"
 
 
 class App
@@ -25,7 +25,7 @@ private:
 
     GLuint m_VAO,m_VBO; 
 
-    GLuint m_texture1,m_texture2;
+    Texture m_texture1,m_texture2;
     Program m_program;
     PerspectiveCamera m_camera;
 
