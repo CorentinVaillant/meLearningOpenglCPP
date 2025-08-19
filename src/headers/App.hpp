@@ -23,18 +23,29 @@ private:
 
     GLFWwindow * m_window;
 
-    GLuint m_VAO,m_VBO; 
+    // Buffers
+    GLuint m_cubeVAO,m_VBO, m_EBO; 
+    GLuint m_lightCubeVAO;
 
-    Texture m_texture1,m_texture2;
-    Program m_program;
-    PerspectiveCamera m_camera;
+    // Programs
+    Program m_cubeProgram;
+    Program m_lightProgram;
+    
+    // Camera
+    FPSPerspectiveCam m_camera;
+    float m_cameraPitch = 0.0f, m_cameraYaw = -M_PI_2;
 
+    // Mouse
+    float m_cursorLastX = 400, m_cursorLastY = 300;
+    bool m_firstMouse = true;
+
+    // Physics
     double m_lastFrame;
     double m_dt;
     
 public:
     // -- Making the class a singleton --
-    static App& getInsteance();
+    static App& getInstance();
     static void init();
     static void run();
     
@@ -53,6 +64,8 @@ private:
     
     // -- Callbacks --
     static void framebuffer_size_callback(GLFWwindow* , int width, int height);  
+    static void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+
     
     // -- Updates --
     void processInput(GLFWwindow *window);

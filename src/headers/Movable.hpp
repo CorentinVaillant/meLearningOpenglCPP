@@ -27,7 +27,7 @@ public :
 
 class Transform : public Movable
 {
-private :
+protected :
     glm::vec3 m_position, m_size;
     glm::quat m_rotation;
 
@@ -54,4 +54,3 @@ public :
     glm::mat4 getTransformsInverse() const override;
 
 };
-

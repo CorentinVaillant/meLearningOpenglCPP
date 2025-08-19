@@ -45,6 +45,16 @@ public:
 	void setUniform2u(const char* name, unsigned int value[2]);
 	void setUniform2f(const char* name, float value[2]);
 
+	void setUniform3b(const char* name, bool v1, bool v2 , bool v23);
+	void setUniform3i(const char* name, int v1, int v2 , int v23);
+	void setUniform3u(const char* name, unsigned int v1, unsigned int v2, unsigned int v3);
+	void setUniform3f(const char* name, float v1, float v2, float v3);
+
+	void setUniform3b(const char* name, bool value[3]);
+	void setUniform3i(const char* name, int value[3]);
+	void setUniform3u(const char* name, unsigned int value[3]);
+	void setUniform3f(const char* name, float value[3]);
+
 	void setUniformMat4fv(const char* name, float matrix[16]);
 
 	void setUniformTexture2D(const char* name,Texture& texture);

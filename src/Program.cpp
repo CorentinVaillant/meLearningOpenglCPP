@@ -86,7 +86,7 @@ void Program::setUniformData(const char* name, GLenum glType,size_t number ,T* d
 
 
 }
-
+// Uniform 1 
 void Program::setUniform1b(const char* name, bool value){
     setUniformData(name, GL_BOOL,1,&value);
 }
@@ -99,6 +99,8 @@ void Program::setUniform1u(const char* name, unsigned int value) {
 void Program::setUniform1f(const char* name, float value) {
     setUniformData(name, GL_FLOAT,1,&value);
 }
+
+// Uniform 2
 
 void Program::setUniform2b(const char* name, bool value[2]) {
     setUniformData(name,GL_BOOL,2 ,value);
@@ -113,7 +115,6 @@ void Program::setUniform2u(const char* name, unsigned int value[2]) {
 }
 void Program::setUniform2f(const char* name, float value[2]) { 
     setUniformData(name, GL_FLOAT,2,value);
-
 }
 
 
@@ -134,6 +135,43 @@ void Program::setUniform2f(const char* name, float v1, float v2) {
     float tab[2] = { v1, v2 };
     setUniform2f(name, tab);
 }
+
+// Uniform 3
+
+void Program::setUniform3b(const char* name, bool value[3]) {
+    setUniformData(name,GL_BOOL,3 ,value);
+}
+void Program::setUniform3i(const char* name, int value[3]) {
+    setUniformData(name,GL_INT,3 ,value);
+
+}
+void Program::setUniform3u(const char* name, unsigned int value[3]) {
+    setUniformData(name,GL_UNSIGNED_INT,3 ,value);
+
+}
+void Program::setUniform3f(const char* name, float value[3]) { 
+    setUniformData(name, GL_FLOAT,3,value);
+}
+
+void Program::setUniform3b(const char* name, bool v1, bool v2, bool v3) {
+    bool tab[3] = { v1, v2, v3 };
+    setUniform3b(name, tab);
+}
+void Program::setUniform3i(const char* name, int v1, int v2, int v3) {
+    int tab[3] = { v1, v2, v3 };
+    setUniform3i(name, tab);
+}
+void Program::setUniform3u(const char* name, unsigned int v1, unsigned int v2, unsigned int v3) {
+    unsigned int tab[3] = { v1, v2, v3};
+    setUniform3u(name, tab);
+}
+
+void Program::setUniform3f(const char* name, float v1, float v2, float v3) {
+    float tab[3] = { v1, v2, v3 };
+    setUniform3f(name, tab);
+}
+
+// Uniform mat4
 
 void Program::setUniformMat4fv(const char* name, float matrix[16]) {
     setUniformData(name,GL_FLOAT,16,matrix);

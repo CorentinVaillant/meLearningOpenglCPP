@@ -1,6 +1,6 @@
 #include "Movable.hpp"
 
-//== Transform Class ==//
+//== MARK: Transform Class ==//
 
 // -- Constructors --
 
@@ -46,5 +46,4 @@ glm::mat4 Transform::getTransformsInverse() const {
     inv *= glm::mat4_cast(glm::inverse(m_rotation));
     return glm::translate(inv, -m_position);
 
-}
-
+}   

@@ -4,48 +4,72 @@
 
 float vertices[] = {
      // Positions         //Text coord
-    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-     0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+    -0.5f, -0.5f, -0.5f,  //0.0f, 0.0f,
+     0.5f, -0.5f, -0.5f,  //1.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,  //1.0f, 1.0f,
+     0.5f,  0.5f, -0.5f,  //1.0f, 1.0f,
+    -0.5f,  0.5f, -0.5f,  //0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  //0.0f, 0.0f,
 
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f, -0.5f,  0.5f,  //0.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,  //1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  //1.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  //1.0f, 1.0f,
+    -0.5f,  0.5f,  0.5f,  //0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  //0.0f, 0.0f,
 
-    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-    -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,  //1.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f,  //1.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  //0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  //0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  //0.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,  //1.0f, 0.0f,
 
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  //1.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,  //1.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  //0.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  //0.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  //0.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  //1.0f, 0.0f,
 
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  //0.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  //1.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  //1.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,  //1.0f, 0.0f,
+    -0.5f, -0.5f,  0.5f,  //0.0f, 0.0f,
+    -0.5f, -0.5f, -0.5f,  //0.0f, 1.0f,
 
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+    -0.5f,  0.5f, -0.5f,  //0.0f, 1.0f,
+     0.5f,  0.5f, -0.5f,  //1.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  //1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  //1.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,  //0.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f   //0.0f, 1.0f
 };
+
+/*
+const float cubeVertices[] = {
+    // positions       
+     1.0f,  1.0f, -1.0f, 
+     1.0f, -1.0f, -1.0f, 
+     1.0f,  1.0f,  1.0f, 
+     1.0f, -1.0f,  1.0f, 
+    -1.0f,  1.0f, -1.0f, 
+    -1.0f, -1.0f, -1.0f, 
+    -1.0f,  1.0f,  1.0f, 
+    -1.0f, -1.0f,  1.0f
+};
+
+const unsigned int CUBE_INDICE_SIZE = 24; 
+const unsigned int cubeIndices[CUBE_INDICE_SIZE]{
+    1, 5, 7, 3,
+    4, 3, 7, 8,
+    8, 7, 5, 6,
+    6, 2, 4, 8,
+    2, 1, 3, 4,
+    6, 5, 1, 2
+};
+*/
 
 const int CUBE_POSITION_NUMBER = 10;
 glm::vec3 cubePositions[CUBE_POSITION_NUMBER] = {
@@ -61,7 +85,16 @@ glm::vec3 cubePositions[CUBE_POSITION_NUMBER] = {
     glm::vec3(-1.3f,  1.0f, -1.5f)  
 };
 
+//Vectors const
+
+const glm::vec3 FORWARD = glm::vec3(1.0f,0.0f,0.0f);
+const glm::vec3 BACKWARD = glm::vec3(-1.0f,0.0f,0.0f);
+const glm::vec3 RIGHT = glm::vec3(0.0f,1.0f,0.0f);
+const glm::vec3 LEFT = glm::vec3(0.0f,-1.0f,0.0f);
+const glm::vec3 UP = glm::vec3(0.0f,0.0f,1.0f);
+const glm::vec3 DOWN = glm::vec3(0.0f,0.0f,-1.0f);
 
 // - Shaders cst -
-extern const char* triangleFragShaderSrc;
-extern const char* triangleVertShaderSrc;
+extern const char* cubeFragShaderSrc;
+extern const char* cubeVertShaderSrc;
+extern const char* lightFragShaderSrc;

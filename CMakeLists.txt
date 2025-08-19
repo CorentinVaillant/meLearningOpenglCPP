@@ -67,10 +67,12 @@ function(embed_shader shader_file var_name)
     string(REPLACE "\"" "\\\"" shader_content "${shader_content}")
     string(REPLACE "\n" "\\n\"\n\"" shader_content "${shader_content}")
 
-    file(WRITE ${output_file} "const char* ${var_name} = \"${shader_content}\";\n")
+    file(WRITE ${output_file} "const char* ${var_name} = \"//${var_name} \\n\"\n\"${shader_content}\";\n")
     set_source_files_properties(${output_file} PROPERTIES GENERATED TRUE)
     target_sources(MeLearningOpengl PRIVATE ${output_file})    
 endfunction()
 
-embed_shader("${SHADER_DIR}/triangle.frag" "triangleFragShaderSrc")
-embed_shader("${SHADER_DIR}/triangle.vert" "triangleVertShaderSrc")
+embed_shader("${SHADER_DIR}/cube.frag" "cubeFragShaderSrc")
+embed_shader("${SHADER_DIR}/cube.vert" "cubeVertShaderSrc")
+
+embed_shader("${SHADER_DIR}/light.frag" "lightFragShaderSrc")
