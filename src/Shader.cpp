@@ -87,7 +87,13 @@ int Shader::compileShader(){
 
     if (!success) {
         glGetShaderInfoLog(m_compiled_shader, 512, NULL, info_log);
-        std::cerr << "ERROR::SHADER::COMPILATION_FAILED\n" << info_log << std::endl;
+        auto shaderTypeStr = m_shader_type == GL_FRAGMENT_SHADER 
+            ? "FRAGMENT_" 
+            : m_shader_type == GL_VERTEX_SHADER
+                ? "VERTEX_"
+                : ""
+            ;
+        std::cerr << "ERROR::"<<shaderTypeStr<< "SHADER::COMPILATION_FAILED\n" << info_log << std::endl;
         return success;
     }
 

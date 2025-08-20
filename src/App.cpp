@@ -19,7 +19,11 @@ App& App::getInstance(){
 
 App::App():
     m_cubeProgram(Program(cubeVertShaderSrc,cubeFragShaderSrc)),
-    m_lightProgram(Program(cubeVertShaderSrc, lightFragShaderSrc))
+    m_lightProgram(Program(cubeVertShaderSrc, lightFragShaderSrc)),
+
+    m_diffuse("../resources/container2.png",GL_RGBA,GL_RGBA),
+    m_specular("../resources/container2_specular.png",GL_RGBA,GL_RGBA),
+    m_emission("../resources/matrix.jpg",GL_RGBA,GL_RGB)
     {}
 
 void App::init(){
@@ -63,9 +67,15 @@ void App::_init(){
 
     glBindVertexArray(m_cubeVAO);
 
-    //position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    //Position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
+    //Normal attribute
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3*sizeof(float)));
+    glEnableVertexAttribArray(1);
+    //Text coord attribute
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6*sizeof(float)));
+    glEnableVertexAttribArray(2);
 
     // second, configure the light's VAO (VBO stays the same; the vertices are the same for the light object which is also a 3D cube)
     glGenVertexArrays(1, &m_lightCubeVAO);
@@ -73,8 +83,15 @@ void App::_init(){
 
     glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    //Position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
+    //Normal attribute
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3*sizeof(float)));
+    glEnableVertexAttribArray(1);
+    //Text coord attribute
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6*sizeof(float)));
+    glEnableVertexAttribArray(2);
 
     // - Loading Texture
 
@@ -114,32 +131,52 @@ void App::_run(){
         
         glm::mat4 projection = m_camera.getProjectionMat();
         glm::mat4 view = m_camera.getViewMat();
-        glm::mat4 model = glm::mat4(1.0f);
-        glm::mat4 viewModel = view * model;
-
-        // Cube
-        m_cubeProgram.useProgram();
-        m_cubeProgram.setUniform3f("objectColor", 1.0f, 0.5f, 0.31f);
-        m_cubeProgram.setUniform3f("lightColor",  1.0f, 1.0f, 1.0f);
-
-        m_cubeProgram.setUniformMat4fv("viewModel", glm::value_ptr(viewModel));
-        m_cubeProgram.setUniformMat4fv("projection", glm::value_ptr(projection));
-
-        m_cubeProgram.useProgram();
-
+        
+        // Cubes
+        const auto LIGHT_POS = glm::vec3(1.2f, 1.0f, 2.0f);
+        auto timePalette = palette(time / 2);
+        
         glBindVertexArray(m_cubeVAO);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        for(int i(0); i< CUBE_POSITION_NUMBER; i++){
+            auto cubePos = cubePositions[i];
+            auto lightDir = cubePos - LIGHT_POS;
+            glm::mat4 model = glm::translate(glm::mat4(1.0f),cubePos);
+            model = glm::rotate(model, time,glm::vec3(cos(i), sin(i),((float)i/CUBE_POSITION_NUMBER)));
+            
+            m_cubeProgram.useProgram();
+            m_cubeProgram.setUniform3f("objectColor", 1.0f, 0.5f, 0.31f);
+            m_cubeProgram.setUniform3f("light.direction", lightDir.x,lightDir.y,lightDir.z);
+            m_cubeProgram.setUniform3f("light.ambient", 0.2f, 0.2f, 0.2f);
+            m_cubeProgram.setUniform3f("light.diffuse", 0.5f,0.5f,0.5f); // darkened
+            m_cubeProgram.setUniform3f("light.specular", timePalette.r,timePalette.g,timePalette.b);
+            
+            auto viewPos = m_camera.getPosition();
+            m_cubeProgram.setUniform3f("viewPos", viewPos.x,viewPos.y,viewPos.z);
+            
+            m_cubeProgram.setUniformTexture2D("material.diffuse", m_diffuse);
+            m_cubeProgram.setUniformTexture2D("material.specular",m_specular);
+            m_cubeProgram.setUniformTexture2D("material.emission",m_emission);
+            m_cubeProgram.setUniform1f("material.shininess", 32.0f);
+            
+            m_cubeProgram.setUniformMat4fv("model", glm::value_ptr(model));
+            m_cubeProgram.setUniformMat4fv("view", glm::value_ptr(view));
+            m_cubeProgram.setUniformMat4fv("projection", glm::value_ptr(projection));
+            
+            m_cubeProgram.useProgram();
+            
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
 
         // Lamp
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(1.2f, 1.0f, 2.0f));
-        model = glm::scale(model, glm::vec3(0.2f));
-
-        viewModel = view * model;
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::translate(model, LIGHT_POS);
+        model = glm::scale(model, glm::vec3(0.5f));
 
         m_lightProgram.clearUniforms();
-        m_lightProgram.setUniformMat4fv("viewModel", glm::value_ptr(viewModel));
+        m_lightProgram.setUniformMat4fv("model", glm::value_ptr(model));
+        m_lightProgram.setUniformMat4fv("view", glm::value_ptr(view));
         m_lightProgram.setUniformMat4fv("projection", glm::value_ptr(projection));
+        m_lightProgram.setUniform3f("color", timePalette.r,timePalette.g,timePalette.b);
         m_lightProgram.useProgram();
 
         glBindVertexArray(m_lightCubeVAO);
@@ -166,6 +203,10 @@ App::~App(){
     m_cubeProgram.deleteProgram();
     m_lightProgram.deleteShaders();
     m_lightProgram.deleteProgram();
+
+    m_diffuse.deleteGlTexture();
+    m_specular.deleteGlTexture();
+    m_emission.deleteGlTexture();
 
 
     //- Stop App
@@ -237,7 +278,16 @@ void App::processInput(GLFWwindow *window)
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
         m_camera.translate(-glm::normalize(glm::cross(m_camera.getFront(), m_camera.getUp())) * cameraSpeed);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        m_camera.translate(+glm::normalize(glm::cross(m_camera.getFront(), m_camera.getUp())) * cameraSpeed);
+        m_camera.translate(glm::normalize(glm::cross(m_camera.getFront(), m_camera.getUp())) * cameraSpeed);
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+        m_camera.translate(m_camera.getUp() * cameraSpeed);
+    if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+        m_camera.translate(-m_camera.getUp() * cameraSpeed);
+
+    if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
+        std::cout<<"[time : "<< m_lastFrame << "] FPS : " << 1.0/m_dt << std::endl;
+    
+
 }
 
 

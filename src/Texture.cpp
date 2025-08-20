@@ -60,7 +60,7 @@ Texture::Texture(const char* path,GLint internalFormat,GLint format){
 
     int width, height, _nrChannels;
     unsigned char* data = stbi_load(path, &width, &height, &_nrChannels, 0);
-    expect_ptr(data,"could not load the image", -1);
+    expect_ptr(data,"could not load the image :" << path, -1);
 
     m_glId = 0;
     m_internalformat = internalFormat;

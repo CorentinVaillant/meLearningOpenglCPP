@@ -30,6 +30,11 @@ private:
     // Programs
     Program m_cubeProgram;
     Program m_lightProgram;
+
+    // Textures
+    Texture m_diffuse;
+    Texture m_specular;
+    Texture m_emission;
     
     // Camera
     FPSPerspectiveCam m_camera;

@@ -113,3 +113,6 @@ constexpr glm::vec<3,T> quaternionToEuler(const glm::qua<T>& q) {
 }
 
 
+inline glm::vec3 palette(float t) {
+    return 0.5f + 0.5f * cos(6.2831f * (glm::vec3(0.0, 0.33, 0.67) + t));
+}
