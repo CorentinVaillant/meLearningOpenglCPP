@@ -45,8 +45,13 @@ public:
 	void setUniform2u(const char* name, unsigned int value[2]);
 	void setUniform2f(const char* name, float value[2]);
 
-	void setUniform3b(const char* name, bool v1, bool v2 , bool v23);
-	void setUniform3i(const char* name, int v1, int v2 , int v23);
+	void setUnifor2b(const char* name, glm::vec<2,bool> value) 			{setUniform2b(name,value.x,value.y);}
+	void setUnifor2i(const char* name, glm::vec<2,int> value) 			{setUniform2i(name,value.x,value.y);}
+	void setUnifor2u(const char* name, glm::vec<2,unsigned int> value) 	{setUniform2u(name,value.x,value.y);}
+	void setUnifor2f(const char* name, glm::vec<2,float> value)			{setUniform2f(name,value.x,value.y);}
+
+	void setUniform3b(const char* name, bool v1, bool v2 , bool v3);
+	void setUniform3i(const char* name, int v1, int v2 , int v3);
 	void setUniform3u(const char* name, unsigned int v1, unsigned int v2, unsigned int v3);
 	void setUniform3f(const char* name, float v1, float v2, float v3);
 
@@ -54,6 +59,11 @@ public:
 	void setUniform3i(const char* name, int value[3]);
 	void setUniform3u(const char* name, unsigned int value[3]);
 	void setUniform3f(const char* name, float value[3]);
+
+	void setUniform3b(const char* name, glm::vec<3,bool> value) 		{setUniform3b(name,value.x,value.y,value.z);}
+	void setUniform3i(const char* name, glm::vec<3,int> value) 			{setUniform3i(name,value.x,value.y,value.z);}
+	void setUniform3u(const char* name, glm::vec<3,unsigned int> value) {setUniform3u(name,value.x,value.y,value.z);}
+	void setUniform3f(const char* name, glm::vec<3,float> value)		{setUniform3f(name,value.x,value.y,value.z);}
 
 	void setUniformMat4fv(const char* name, float matrix[16]);
 

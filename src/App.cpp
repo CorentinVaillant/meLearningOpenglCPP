@@ -126,7 +126,8 @@ void App::_run(){
         processInput(m_window);
 
         //renders
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        const glm::vec3 CLEAR_COLOR = glm::vec3(0.1f, 0.5f, 0.1f);
+        glClearColor(CLEAR_COLOR.r,CLEAR_COLOR.g,CLEAR_COLOR.b, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
         glm::mat4 projection = m_camera.getProjectionMat();
@@ -143,15 +144,23 @@ void App::_run(){
             glm::mat4 model = glm::translate(glm::mat4(1.0f),cubePos);
             model = glm::rotate(model, time,glm::vec3(cos(i), sin(i),((float)i/CUBE_POSITION_NUMBER)));
             
-            m_cubeProgram.useProgram();
+            m_cubeProgram.clearUniforms();
             m_cubeProgram.setUniform3f("objectColor", 1.0f, 0.5f, 0.31f);
-            m_cubeProgram.setUniform3f("light.direction", lightDir.x,lightDir.y,lightDir.z);
-            m_cubeProgram.setUniform3f("light.ambient", 0.2f, 0.2f, 0.2f);
-            m_cubeProgram.setUniform3f("light.diffuse", 0.5f,0.5f,0.5f); // darkened
-            m_cubeProgram.setUniform3f("light.specular", timePalette.r,timePalette.g,timePalette.b);
+
+            m_cubeProgram.setUniform3f("light.position", m_camera.getPosition());
+            m_cubeProgram.setUniform3f("light.direction", m_camera.getFront());
+            m_cubeProgram.setUniform1f("light.cutOff", glm::cos(glm::radians(12.5f)));
+            m_cubeProgram.setUniform1f("light.outerCutOff", glm::cos(glm::radians(15.0f)));
+
+            m_cubeProgram.setUniform3f("light.ambient", CLEAR_COLOR);
+            m_cubeProgram.setUniform3f("light.diffuse", 0.8f,0.8f,0.8f);
+            m_cubeProgram.setUniform3f("light.specular", timePalette);
+            m_cubeProgram.setUniform1f("light.constant", 1.0f);
+            m_cubeProgram.setUniform1f("light.linear",0.09f);
+            m_cubeProgram.setUniform1f("light.quadratic", 0.032f);
+
             
-            auto viewPos = m_camera.getPosition();
-            m_cubeProgram.setUniform3f("viewPos", viewPos.x,viewPos.y,viewPos.z);
+            m_cubeProgram.setUniform3f("viewPos", m_camera.getPosition());
             
             m_cubeProgram.setUniformTexture2D("material.diffuse", m_diffuse);
             m_cubeProgram.setUniformTexture2D("material.specular",m_specular);
@@ -176,7 +185,7 @@ void App::_run(){
         m_lightProgram.setUniformMat4fv("model", glm::value_ptr(model));
         m_lightProgram.setUniformMat4fv("view", glm::value_ptr(view));
         m_lightProgram.setUniformMat4fv("projection", glm::value_ptr(projection));
-        m_lightProgram.setUniform3f("color", timePalette.r,timePalette.g,timePalette.b);
+        m_lightProgram.setUniform3f("color", timePalette);
         m_lightProgram.useProgram();
 
         glBindVertexArray(m_lightCubeVAO);
