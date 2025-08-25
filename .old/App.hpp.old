@@ -11,6 +11,7 @@
 #include <iostream>
 
 #include "Program.hpp"
+#include "buffers.hpp"
 #include "macros.hpp"
 #include "Camera.hpp"
 #include "gl_utils.hpp"
@@ -24,7 +25,9 @@ private:
     GLFWwindow * m_window;
 
     // Buffers
-    GLuint m_cubeVAO,m_VBO, m_EBO; 
+    VertexBuffer<float> m_VBO;
+    IndexBuffer<unsigned int> m_IBO;
+    GLuint m_cubeVAO; 
     GLuint m_lightCubeVAO;
 
     // Programs

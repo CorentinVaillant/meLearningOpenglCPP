@@ -60,8 +60,9 @@ void App::_init(){
     //- Init VAO and VBO (vertex array object, vertex buffer object)
 
     glGenVertexArrays(1,&m_cubeVAO);
-    glGenBuffers(1,&m_VBO);
 
+    
+    glGenBuffers(1,&m_VBO);
     glBindBuffer(GL_ARRAY_BUFFER,m_VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
@@ -140,11 +141,10 @@ void App::_run(){
         glBindVertexArray(m_cubeVAO);
         for(int i(0); i< CUBE_POSITION_NUMBER; i++){
             auto cubePos = cubePositions[i];
-            auto lightDir = cubePos - LIGHT_POS;
+            // auto lightDir = cubePos - LIGHT_POS;
             glm::mat4 model = glm::translate(glm::mat4(1.0f),cubePos);
             model = glm::rotate(model, time,glm::vec3(cos(i), sin(i),((float)i/CUBE_POSITION_NUMBER)));
             
-            m_cubeProgram.clearUniforms();
             m_cubeProgram.setUniform3f("objectColor", 1.0f, 0.5f, 0.31f);
 
             m_cubeProgram.setUniform3f("light.position", m_camera.getPosition());
@@ -158,18 +158,20 @@ void App::_run(){
             m_cubeProgram.setUniform1f("light.constant", 1.0f);
             m_cubeProgram.setUniform1f("light.linear",0.09f);
             m_cubeProgram.setUniform1f("light.quadratic", 0.032f);
-
+            
             
             m_cubeProgram.setUniform3f("viewPos", m_camera.getPosition());
-            
             m_cubeProgram.setUniformTexture2D("material.diffuse", m_diffuse);
             m_cubeProgram.setUniformTexture2D("material.specular",m_specular);
             m_cubeProgram.setUniformTexture2D("material.emission",m_emission);
             m_cubeProgram.setUniform1f("material.shininess", 32.0f);
             
-            m_cubeProgram.setUniformMat4fv("model", glm::value_ptr(model));
             m_cubeProgram.setUniformMat4fv("view", glm::value_ptr(view));
             m_cubeProgram.setUniformMat4fv("projection", glm::value_ptr(projection));
+            m_cubeProgram.setUniformMat4fv("model", glm::value_ptr(model));
+
+            m_cubeProgram.setUniform3f("nope",1.0f,2.0f,3.0f);
+
             
             m_cubeProgram.useProgram();
             
@@ -231,7 +233,6 @@ void App::framebuffer_size_callback(GLFWwindow* , int width, int height){
     App::getInstance().m_camera.setAspect((float)width/(float)height);
 }
 
-//! there is still smt weird going on here
 void App::mouse_callback(GLFWwindow*, double xpos, double ypos){
     auto& app = App::getInstance();
     float& lastX = app.m_cursorLastX;

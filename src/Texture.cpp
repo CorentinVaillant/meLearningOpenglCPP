@@ -81,7 +81,7 @@ Texture::~Texture(){
 // -- Getters --
 GLuint Texture::getGlId(){
     if(m_glId == 0)
-        createGlTexture();
+        createGlTexture();    
     return m_glId;
 }
 
@@ -95,6 +95,7 @@ void Texture::deleteGlTexture(){
 // -- Private methods --
 
 void Texture::createGlTexture(){
+
     glGenTextures(1,&m_glId);
     if(!m_glId)
         throw "ERROR::TEXTURE::CREATION_FAILED \n";

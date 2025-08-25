@@ -64,12 +64,17 @@ inline void throwOnGlError(const char * errorMsg){
     std::stringstream errorStream;
 
     if(logOnGlError(errorStream,errorMsg)){
-        std::string error;
-        errorStream >> error;
+        std::string error = errorStream.str();
         throw std::runtime_error(error);
     }
 }
 
+#define glCall(x) \
+    x;{\
+    std::stringstream errorStream;\
+    errorStream << "GL ERROR in " << #x << "at :" << __FILE__ << "::" << __LINE__ << "\n";\
+    if(logOnGlError(errorStream, ""))\
+        throw std::runtime_error(errorStream.str());}
 
 // -- Math --
 

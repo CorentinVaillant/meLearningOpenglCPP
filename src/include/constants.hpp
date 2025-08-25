@@ -1,8 +1,8 @@
 #pragma once
 
 // - Meshes cst -
-
-float vertices[] = {
+const size_t VERTICES_SIZE = 288;
+float vertices[VERTICES_SIZE] = {
 //   |Positions         //|Normals               //|Text coord
     -0.5f, -0.5f, -0.5f,/*|*/ 0.0f, 0.0f, -1.0f, /*|*/ 0.0f, 0.0f,
      0.5f, -0.5f, -0.5f,/*|*/ 0.0f, 0.0f, -1.0f, /*|*/ 1.0f, 0.0f,
@@ -49,15 +49,15 @@ float vertices[] = {
 
 /*
 const float cubeVertices[] = {
-    // positions       
-     1.0f,  1.0f, -1.0f, 
-     1.0f, -1.0f, -1.0f, 
-     1.0f,  1.0f,  1.0f, 
-     1.0f, -1.0f,  1.0f, 
+    //Positions        //|Normals      
+     1.0f,  1.0f, -1.0f,
+     1.0f, -1.0f, -1.0f,
+     1.0f,  1.0f,  1.0f,
+     1.0f, -1.0f,  1.0f,
     -1.0f,  1.0f, -1.0f, 
     -1.0f, -1.0f, -1.0f, 
     -1.0f,  1.0f,  1.0f, 
-    -1.0f, -1.0f,  1.0f
+    -1.0f, -1.0f,  1.0f,
 };
 
 const unsigned int CUBE_INDICE_SIZE = 24; 

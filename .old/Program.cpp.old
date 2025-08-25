@@ -2,11 +2,9 @@
 
 #include <string>
 #include <cstring>
-#include <unordered_map>
 #include <stdexcept>
 
 using std::byte;
-
 
 Program::Program(Shader&& vert_shad, Shader&& frag_shad)
     : m_vert(std::move(vert_shad)), m_frag(std::move(frag_shad)), m_program(0) 
@@ -35,7 +33,7 @@ void Program::useProgram() {
     if (m_program == 0) {
         createGlProgram();
     }
-    glCall(glUseProgram(m_program));
+    glUseProgram(m_program);
     useUniformData();
 }
 
@@ -62,35 +60,62 @@ const Shader& Program::getFragShader() const{
 // -- Uniforms functions --
 
 GLint Program::getUniformLocation(const char* name) {
-    if(!m_program)
-        createGlProgram();
     return glGetUniformLocation(m_program, name);
 }
 
 template<typename T>
-void Program::setUniformData(const char* name, GLenum glType,size_t count ,T* data){
-    Program::UniformData ud;
+void Program::setUniformData(const char* name, GLenum glType,size_t number ,T* data){
+    struct UniformData ud;
+    ud.name = name;
     ud.glType = glType;
-    ud.glLocation = getUniformLocation(name);
-    ud.count = count;
-    ud.data =(byte*) (new T[count]);
-    memcpy(ud.data,data,count*sizeof(T));
+    ud.count = number;
 
-    std::string UniformName = std::string(name);
+    size_t offset = m_uniformPool.size();
+    const size_t align = alignof(T);
+    size_t padding = (align == 0) ? 0 : ( (align - (offset % align)) % align );
+    offset += padding;
 
-    m_uniformPool[UniformName] = ud;
+    const size_t nBytes = sizeof(T) * number;
+    const size_t newSize = offset + nBytes;
+
+    m_uniformPool.resize(newSize);
+    std::memcpy(m_uniformPool.data() + offset, reinterpret_cast<const void*>(data), nBytes);
+
+    ud.offset = offset;
+    m_uniformsCardsPool.push_back(std::move(ud));
+
+
 }
 // Uniform 1 
-void Program::setUniform1b(const char* name, bool value)         { setUniformData(name, GL_BOOL,1,&value);}
-void Program::setUniform1i(const char* name, int value)          { setUniformData(name, GL_INT,1,&value);}
-void Program::setUniform1u(const char* name, unsigned int value) { setUniformData(name, GL_UNSIGNED_INT,1,&value);}
-void Program::setUniform1f(const char* name, float value)        { setUniformData(name, GL_FLOAT,1,&value);}
+void Program::setUniform1b(const char* name, bool value){
+    setUniformData(name, GL_BOOL,1,&value);
+}
+void Program::setUniform1i(const char* name, int value) {
+    setUniformData(name, GL_INT,1,&value);
+}
+void Program::setUniform1u(const char* name, unsigned int value) {
+    setUniformData(name, GL_UNSIGNED_INT,1,&value);
+}
+void Program::setUniform1f(const char* name, float value) {
+    setUniformData(name, GL_FLOAT,1,&value);
+}
 
 // Uniform 2
-void Program::setUniform2b(const char* name, bool value[2])         { setUniformData(name, GL_BOOL,2 ,value);}
-void Program::setUniform2i(const char* name, int value[2])          { setUniformData(name, GL_INT,2 ,value);}
-void Program::setUniform2u(const char* name, unsigned int value[2]) { setUniformData(name, GL_UNSIGNED_INT,2 ,value);}
-void Program::setUniform2f(const char* name, float value[2])        { setUniformData(name, GL_FLOAT,2,value);}
+
+void Program::setUniform2b(const char* name, bool value[2]) {
+    setUniformData(name,GL_BOOL,2 ,value);
+}
+void Program::setUniform2i(const char* name, int value[2]) {
+    setUniformData(name,GL_INT,2 ,value);
+
+}
+void Program::setUniform2u(const char* name, unsigned int value[2]) {
+    setUniformData(name,GL_UNSIGNED_INT,2 ,value);
+
+}
+void Program::setUniform2f(const char* name, float value[2]) { 
+    setUniformData(name, GL_FLOAT,2,value);
+}
 
 
 void Program::setUniform2b(const char* name, bool v1, bool v2) {
@@ -113,10 +138,20 @@ void Program::setUniform2f(const char* name, float v1, float v2) {
 
 // Uniform 3
 
-void Program::setUniform3b(const char* name, bool value[3])         { setUniformData(name, GL_BOOL,3 ,value);}
-void Program::setUniform3i(const char* name, int value[3])          { setUniformData(name, GL_INT,3 ,value);}
-void Program::setUniform3u(const char* name, unsigned int value[3]) { setUniformData(name, GL_UNSIGNED_INT,3 ,value);}
-void Program::setUniform3f(const char* name, float value[3])        { setUniformData(name, GL_FLOAT,3,value);}
+void Program::setUniform3b(const char* name, bool value[3]) {
+    setUniformData(name,GL_BOOL,3 ,value);
+}
+void Program::setUniform3i(const char* name, int value[3]) {
+    setUniformData(name,GL_INT,3 ,value);
+
+}
+void Program::setUniform3u(const char* name, unsigned int value[3]) {
+    setUniformData(name,GL_UNSIGNED_INT,3 ,value);
+
+}
+void Program::setUniform3f(const char* name, float value[3]) { 
+    setUniformData(name, GL_FLOAT,3,value);
+}
 
 void Program::setUniform3b(const char* name, bool v1, bool v2, bool v3) {
     bool tab[3] = { v1, v2, v3 };
@@ -142,8 +177,8 @@ void Program::setUniformMat4fv(const char* name, float matrix[16]) {
     setUniformData(name,GL_FLOAT,16,matrix);
 }
 
-void Program::setUniformTexture2D(const char* name,Texture& texture){
 
+void Program::setUniformTexture2D(const char* name,Texture& texture){
     TextureData td = {
         std::string(name),
         texture.getGlId(),
@@ -153,16 +188,19 @@ void Program::setUniformTexture2D(const char* name,Texture& texture){
 
 void Program::useUniformData(){
     //regular uniform types
-    for(auto& key_value : m_uniformPool){
-        const UniformData& ud = key_value.second; 
+    for(UniformData& ud : m_uniformsCardsPool){
+        GLuint glLocation = glGetUniformLocation(m_program,ud.name.c_str());
+
+        byte* dataPtr = reinterpret_cast<byte*>(m_uniformPool.data() + ud.offset);
+
         switch (ud.count)
         {
-        case 1 :useUniformData1(ud.glLocation, ud.glType, ud.data);  break;
-        case 2 :useUniformData2(ud.glLocation, ud.glType, ud.data);  break;
-        case 3 :useUniformData3(ud.glLocation, ud.glType, ud.data);  break;
-        case 4 :useUniformData4(ud.glLocation, ud.glType, ud.data);  break;
-        case 9 :useUniformData9(ud.glLocation, ud.glType, ud.data);  break;
-        case 16:useUniformData16(ud.glLocation, ud.glType, ud.data); break;
+        case 1 :useUniformData1(glLocation, ud.glType, dataPtr);  break;
+        case 2 :useUniformData2(glLocation, ud.glType, dataPtr);  break;
+        case 3 :useUniformData3(glLocation, ud.glType, dataPtr);  break;
+        case 4 :useUniformData4(glLocation, ud.glType, dataPtr);  break;
+        case 9 :useUniformData9(glLocation, ud.glType, dataPtr);  break;
+        case 16:useUniformData16(glLocation, ud.glType, dataPtr); break;
         default:
             break;
         }
@@ -185,6 +223,7 @@ void Program::useUniformData(){
 
         numTexture++;
     }
+
 }
 
 //Type suported : GL_BOOL, GL_INT, GL_UNSIGNED_INT, GL_FLOAT
@@ -193,98 +232,89 @@ void Program::useUniformData1(GLuint glLocation, GLenum glType, byte* data) {
     switch (glType) {
     case GL_BOOL:
     case GL_INT:
-        glUniform1i(glLocation, *(const int*)(data));
+        glUniform1i(glLocation, *reinterpret_cast<const int*>(data));
         break;
     case GL_UNSIGNED_INT:
-        glUniform1ui(glLocation, *(const unsigned int*)(data));
+        glUniform1ui(glLocation, *reinterpret_cast<const unsigned int*>(data));
         break;
     case GL_FLOAT:
-        glUniform1f(glLocation, *(const float*)(data));
+        glUniform1f(glLocation, *reinterpret_cast<const float*>(data));
         break;
     default:
         throw std::runtime_error("Unsupported glType for 1-component uniform");
     }
-
-    throwOnGlError("Error in useUniformData 1");
 }
 
 void Program::useUniformData2(GLuint glLocation, GLenum glType, byte* data) {
     switch (glType) {
     case GL_BOOL:
     case GL_INT:
-        glUniform2iv(glLocation, 1, (const int*)(data));
+        glUniform2iv(glLocation, 1, reinterpret_cast<const int*>(data));
         break;
     case GL_UNSIGNED_INT:
-        glUniform2uiv(glLocation, 1, (const unsigned int*)(data));
+        glUniform2uiv(glLocation, 1, reinterpret_cast<const unsigned int*>(data));
         break;
     case GL_FLOAT:
-        glUniform2fv(glLocation, 1, (const float*)(data));
+        glUniform2fv(glLocation, 1, reinterpret_cast<const float*>(data));
         break;
     default:
         throw std::runtime_error("Unsupported glType for 2-component uniform");
     }
-
-    throwOnGlError("Error in useUniformData 2");
 }
 
 void Program::useUniformData3 (GLuint glLocation,GLenum glType, byte* data){
     switch (glType) {
     case GL_BOOL:
     case GL_INT:
-        glUniform3iv(glLocation, 1, (const int*)(data));
+        glUniform3iv(glLocation, 1, reinterpret_cast<const int*>(data));
         break;
     case GL_UNSIGNED_INT:
-        glUniform3uiv(glLocation, 1, (const unsigned int*)(data));
+        glUniform3uiv(glLocation, 1, reinterpret_cast<const unsigned int*>(data));
         break;
     case GL_FLOAT:
-        glUniform3fv(glLocation, 1, (const float*)(data));
+        glUniform3fv(glLocation, 1, reinterpret_cast<const float*>(data));
         break;
     default:
         throw std::runtime_error("Unsupported glType for 3-component uniform");
     }
-    throwOnGlError("Error in useUniformData3");
 }
 void Program::useUniformData4 (GLuint glLocation,GLenum glType, byte* data){
     switch (glType) {
     case GL_BOOL:
     case GL_INT:
-        glUniform4iv(glLocation, 1, (const int*)(data));
+        glUniform4iv(glLocation, 1, reinterpret_cast<const int*>(data));
         break;
     case GL_UNSIGNED_INT:
-        glUniform4uiv(glLocation, 1, (const unsigned int*)(data));
+        glUniform4uiv(glLocation, 1, reinterpret_cast<const unsigned int*>(data));
         break;
     case GL_FLOAT:
-        glUniform4fv(glLocation, 1, (const float*)(data));
+        glUniform4fv(glLocation, 1, reinterpret_cast<const float*>(data));
         break;
     default:
         throw std::runtime_error("Unsupported glType for 4-component uniform");
     }
-    throwOnGlError("Error in useUniformData4");
-
 }
 
 void Program::useUniformData9(GLuint glLocation, GLenum glType, byte* data) {
     if (glType == GL_FLOAT) {
-        glUniformMatrix3fv(glLocation, 1, GL_FALSE, (const float*)(data));
+        glUniformMatrix3fv(glLocation, 1, GL_FALSE, reinterpret_cast<const float*>(data));
     } else {
         throw std::runtime_error("Unsupported non-float 3x3 uniform");
     }
-    throwOnGlError("Error in useUniformData9");
 }
 
 void Program::useUniformData16(GLuint glLocation, GLenum glType, byte* data) {
     if (glType == GL_FLOAT) {
-        glUniformMatrix4fv(glLocation, 1, GL_FALSE, (const float*)(data));
+        glUniformMatrix4fv(glLocation, 1, GL_FALSE, reinterpret_cast<const float*>(data));
     } else {
         throw std::runtime_error("Unsupported non-float 4x4 uniform");
     }
-    throwOnGlError("Error in useUniformData16");
 }
-
 
 
 void Program::clearUniforms(){
     m_uniformPool.clear();
+    m_uniformsCardsPool.clear();
     m_texturePool.clear();
 }
 

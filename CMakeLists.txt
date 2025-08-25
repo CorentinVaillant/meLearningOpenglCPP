@@ -22,27 +22,28 @@ add_subdirectory(lib/glm)
 
 # Main project
 add_executable(MeLearningOpengl 
-    src/glad.c
 
     src/main.cpp
 
-    src/App.cpp
     src/Program.cpp
     src/Shader.cpp
     src/Camera.cpp
     src/Movable.cpp
     src/Texture.cpp
+    src/GlBuffer.cpp
+    src/VertexArray.cpp
 
+    lib/glad/glad.c
 )
 
 target_include_directories(MeLearningOpengl PUBLIC
     "${PROJECT_BINARY_DIR}"
     "${PROJECT_SOURCE_DIR}/lib/"
     "${PROJECT_SOURCE_DIR}/lib/glfw/include"
+    "${PROJECT_SOURCE_DIR}/lib/glad/include"
     "${PROJECT_SOURCE_DIR}/lib/glm"
 
     "${PROJECT_SOURCE_DIR}/src/include"
-    "${PROJECT_SOURCE_DIR}/src/headers"
 )
 
 target_link_libraries(MeLearningOpengl PUBLIC

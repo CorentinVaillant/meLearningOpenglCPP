@@ -1,7 +1,290 @@
-#include "App.hpp"
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/quaternion.hpp>
+
+#include <iostream>
+
+#include "Program.hpp"
+#include "GlBuffer.hpp"
+#include "macros.hpp"
+#include "Camera.hpp"
+#include "gl_utils.hpp"
+#include "constants.hpp"
+
+// Rendering
+
+FPSPerspectiveCam camera;
+
+// Physics
+
+float dt, lastFrame;
+
+// Mouse 
+
+float cursorLastX
+     ,cursorLastY
+     ,cameraYaw
+     ,cameraPitch;
+
+bool firstMouse;
+
+// -- Functions --
+void mouse_callback(GLFWwindow*, double xpos, double ypos);
+void framebuffer_size_callback(GLFWwindow* , int width, int height);
+
+
+// -- Initializers --
+
+void initGlfw(){
+    expect_true(glfwInit(),"Failed to initialize GLFW",-1);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+}
+
+GLFWwindow* initWindow(){
+    auto window = glfwCreateWindow(800, 600, "LearnOpenGL", NULL, NULL);
+    expect_ptr(window, "Failed to create GLFW window", -1);
+    glfwMakeContextCurrent(window);
+    expect_true(gladLoadGLLoader((GLADloadproc)glfwGetProcAddress), "Failed to initialize GLAD", -1);
+
+    glViewport(0, 0, 800, 600);
+
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);  
+
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetCursorPosCallback(window,mouse_callback);
+
+    return window;
+}
+
+// -- Callbacks --
+void mouse_callback(GLFWwindow*, double xpos, double ypos){
+    float& lastX = cursorLastX;
+    float& lastY = cursorLastY;
+    float& camYaw = cameraYaw;
+    float& camPitch = cameraPitch;
+
+    if (firstMouse) {
+        lastX = xpos;
+        lastY = ypos;
+        firstMouse = false;
+    }
+
+
+    float xoffset = xpos - lastX;
+    float yoffset = lastY - ypos;
+    lastX = xpos;
+    lastY = ypos;
+
+    float sensitivity = 0.002f; 
+    xoffset *= sensitivity;
+    yoffset *= sensitivity;
+
+    camYaw   += xoffset;
+    camPitch += yoffset;
+
+  float limit = glm::half_pi<float>() - 0.1f; // π/2 - 0.1
+    if (camPitch > limit)
+        camPitch = limit;
+    if (camPitch < -limit)
+        camPitch = -limit;
+
+    glm::vec3 direction;
+    direction.x = cos(camYaw) * cos(camPitch);
+    direction.y = sin(camPitch);
+    direction.z = sin(camYaw) * cos(camPitch);
+    camera.setFront(glm::normalize(direction));
+
+}
+
+void framebuffer_size_callback(GLFWwindow* , int width, int height){
+    glViewport(0, 0, width, height);
+
+    camera.setAspect((float)width/(float)height);
+}
+
+// -- Utils --
+glm::vec2 getResolution(GLFWwindow *window){
+    int width, heigth;
+    glfwGetWindowSize(window,&width,&heigth);
+    return glm::vec2((float)width,(float)heigth);
+}
+
+// -- Updates --
+void processInput(GLFWwindow *window)
+{
+    if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, true);
+
+    float cameraSpeed = 10.0f * dt;
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        camera.translate(cameraSpeed * camera.getFront());
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        camera.translate(-cameraSpeed * camera.getFront());
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        camera.translate(-glm::normalize(glm::cross(camera.getFront(), camera.getUp())) * cameraSpeed);
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        camera.translate(glm::normalize(glm::cross(camera.getFront(), camera.getUp())) * cameraSpeed);
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+        camera.translate(camera.getUp() * cameraSpeed);
+    if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+        camera.translate(-camera.getUp() * cameraSpeed);
+
+    if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
+        std::cout<<"[time : "<< lastFrame << "] FPS : " << 1.0/dt << std::endl;
+}
 
 int main() {
-    App::init();
-    App::run();
-    return 0;
+    //MARK: Init
+do{
+    initGlfw();
+    auto window = initWindow();
+
+    //- Init VAO and VBO (vertex array object, vertex buffer object)
+
+    GLuint cubeVAO;
+    glGenVertexArrays(1,&cubeVAO);
+
+
+    VertexBuffer<float> VBO = VertexBuffer<float>(vertices,VERTICES_SIZE);
+
+    glBindVertexArray(cubeVAO);
+
+    //Position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    //Normal attribute
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3*sizeof(float)));
+    glEnableVertexAttribArray(1);
+    //Text coord attribute
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6*sizeof(float)));
+    glEnableVertexAttribArray(2);
+
+    // second, configure the light's VAO (VBO stays the same; the vertices are the same for the light object which is also a 3D cube)
+    GLuint lightCubeVAO;
+    glGenVertexArrays(1, &lightCubeVAO);
+    glBindVertexArray(lightCubeVAO);
+
+    VBO.bind();
+
+    //Position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    //Normal attribute
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3*sizeof(float)));
+    glEnableVertexAttribArray(1);
+    //Text coord attribute
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6*sizeof(float)));
+    glEnableVertexAttribArray(2);
+
+    // Textures 
+    Texture diffuse("../resources/container2.png",GL_RGBA,GL_RGBA);
+    Texture specular("../resources/container2_specular.png",GL_RGBA,GL_RGBA);
+    Texture emission("../resources/matrix.jpg",GL_RGBA,GL_RGB);
+
+    // Programs
+    Program cubeProgram(Program(cubeVertShaderSrc,cubeFragShaderSrc));
+    Program lightProgram(Program(cubeVertShaderSrc, lightFragShaderSrc));
+
+
+    // - Draw parameters
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glEnable(GL_DEPTH_TEST);  
+
+    lastFrame = glfwGetTime();
+    dt = 0;
+
+    //MARK: Update
+
+    while(!glfwWindowShouldClose(window))
+    {
+        float time = glfwGetTime();
+        dt = time - lastFrame;
+        lastFrame = time;
+
+        //updates
+        processInput(window);
+
+        //renders
+        const glm::vec3 CLEAR_COLOR = glm::vec3(0.1f, 0.5f, 0.1f);
+        glClearColor(CLEAR_COLOR.r,CLEAR_COLOR.g,CLEAR_COLOR.b, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        
+        glm::mat4 projection = camera.getProjectionMat();
+        glm::mat4 view = camera.getViewMat();
+        
+        // Cubes
+        const auto LIGHT_POS = glm::vec3(1.2f, 1.0f, 2.0f);
+        auto timePalette = palette(time / 2);
+        
+        glBindVertexArray(cubeVAO);
+        for(int i(0); i< CUBE_POSITION_NUMBER; i++){
+            auto cubePos = cubePositions[i];
+            glm::mat4 model = glm::translate(glm::mat4(1.0f),cubePos);
+            model = glm::rotate(model, time,glm::vec3(cos(i), sin(i),((float)i/CUBE_POSITION_NUMBER)));
+            
+            cubeProgram.setUniform3f("objectColor", 1.0f, 0.5f, 0.31f);
+
+            cubeProgram.setUniform3f("light.position", camera.getPosition());
+            cubeProgram.setUniform3f("light.direction", camera.getFront());
+            cubeProgram.setUniform1f("light.cutOff", glm::cos(glm::radians(12.5f)));
+            cubeProgram.setUniform1f("light.outerCutOff", glm::cos(glm::radians(15.0f)));
+
+            cubeProgram.setUniform3f("light.ambient", CLEAR_COLOR);
+            cubeProgram.setUniform3f("light.diffuse", 0.8f,0.8f,0.8f);
+            cubeProgram.setUniform3f("light.specular", timePalette);
+            cubeProgram.setUniform1f("light.constant", 1.0f);
+            cubeProgram.setUniform1f("light.linear",0.09f);
+            cubeProgram.setUniform1f("light.quadratic", 0.032f);
+            
+            
+            cubeProgram.setUniform3f("viewPos", camera.getPosition());
+            cubeProgram.setUniformTexture2D("material.diffuse", diffuse);
+            cubeProgram.setUniformTexture2D("material.specular",specular);
+            cubeProgram.setUniformTexture2D("material.emission",emission);
+            cubeProgram.setUniform1f("material.shininess", 32.0f);
+            
+            cubeProgram.setUniformMat4fv("view", glm::value_ptr(view));
+            cubeProgram.setUniformMat4fv("projection", glm::value_ptr(projection));
+            cubeProgram.setUniformMat4fv("model", glm::value_ptr(model));
+            
+            cubeProgram.useProgram();
+            
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
+
+        // Lamp
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::translate(model, LIGHT_POS);
+        model = glm::scale(model, glm::vec3(0.5f));
+
+        lightProgram.clearUniforms();
+        lightProgram.setUniformMat4fv("model", glm::value_ptr(model));
+        lightProgram.setUniformMat4fv("view", glm::value_ptr(view));
+        lightProgram.setUniformMat4fv("projection", glm::value_ptr(projection));
+        lightProgram.setUniform3f("color", timePalette);
+        lightProgram.useProgram();
+
+        glBindVertexArray(lightCubeVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+
+        //check and call events and swap the buffers
+        glfwSwapBuffers(window);
+        glfwPollEvents();   
+        
+        //check for errors
+        throwOnGlError("error detected after update");
+    }
+
+    //MARK: Cleaning
+
+    glDeleteVertexArrays(1,&cubeVAO);
+    glDeleteVertexArrays(1,&lightCubeVAO);
+}while(0);
+    glfwTerminate();
 }
