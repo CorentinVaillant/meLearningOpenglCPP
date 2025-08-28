@@ -9,6 +9,42 @@
 #include <string>
 #include <stdexcept>
 
+
+// -- Memory utils --
+
+inline constexpr size_t glTypeSize(GLenum glType)
+{
+    switch(glType)
+    {
+        case GL_BYTE: 
+            return sizeof(GLbyte);
+        case GL_UNSIGNED_BYTE: 
+            return sizeof(GLubyte);
+        case GL_SHORT: 
+            return sizeof(GLshort);
+        case GL_UNSIGNED_SHORT: 
+            return sizeof(GLushort);
+        case GL_INT: 
+            return sizeof(GLint);
+        case GL_UNSIGNED_INT: 
+            return sizeof(GLuint);
+        case GL_FLOAT: 
+            return sizeof(GLfloat);
+        case GL_DOUBLE:
+            return sizeof(GLdouble);
+        case GL_HALF_FLOAT:
+            return sizeof(GLhalf);
+    #ifdef GL_FIXED
+        case GL_FIXED:
+            return sizeof(GLfixed);
+    #endif
+        default:
+            return 0;
+    }
+}
+
+// -- Error handling --
+
 //derive from openGL doc : registry.khronos.org/OpenGL-Refpages/gl4/html/glGetError.xhtml
 static const char * MSG_GL_INVALID_ENUM =                  "Error code [0x0500] :\t An unacceptable value is specified for an enumerated argument. The offending command is ignored and has no other side effect than to set the error flag.\n";
 static const char * MSG_GL_INVALID_VALUE =                 "Error code [0x0501] :\t A numeric argument is out of range. The offending command is ignored and has no other side effect than to set the error flag.\n";

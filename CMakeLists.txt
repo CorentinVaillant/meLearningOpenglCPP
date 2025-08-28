@@ -23,8 +23,6 @@ add_subdirectory(lib/glm)
 # Main project
 add_executable(MeLearningOpengl 
 
-    src/main.cpp
-
     src/Program.cpp
     src/Shader.cpp
     src/Camera.cpp
@@ -33,6 +31,8 @@ add_executable(MeLearningOpengl
     src/GlBuffer.cpp
     src/VertexArray.cpp
 
+    src/main.cpp
+    
     lib/glad/glad.c
 )
 
