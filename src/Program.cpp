@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <stdexcept>
 
+
 using std::byte;
 
 
@@ -56,16 +57,21 @@ GLint Program::getUniformLocation(const char* name) {
 
 template<typename T>
 void Program::setUniformData(const char* name, GLenum glType,size_t count ,T* data){    
-    Program::UniformData ud;
-    ud.glType = glType;
-    ud.glLocation = getUniformLocation(name);
-    ud.count = count;
-    ud.data =(byte*) (new T[count]);
-    memcpy(ud.data,data,count*sizeof(T));
 
-    std::string UniformName = std::string(name);
+    Program::UniformData* p_ud;
 
-    m_uniformPool[UniformName] = ud;
+    if (m_uniformPool.contains(name)){
+        p_ud = &m_uniformPool[name];
+    }else{
+        m_uniformPool[name] = Program::UniformData();
+        p_ud = &m_uniformPool[name];
+        p_ud->glLocation = getUniformLocation(name);
+    }
+    
+    p_ud->glType = glType;
+    p_ud->count = count;
+    p_ud->data =(byte*) (new T[count]);
+    memcpy(p_ud->data,data,count*sizeof(T));
 }
 // Uniform 1 
 void Program::setUniform1b(const char* name, bool value)         { setUniformData(name, GL_BOOL,1,&value);}

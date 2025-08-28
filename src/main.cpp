@@ -178,6 +178,10 @@ int main() {
     lastFrame = glfwGetTime();
     dt = 0;
 
+    VBO.unbind();
+    cubeVAO.unbind();
+    lightCubeVAO.unbind();
+
     throwOnGlError("Error in init");
 
     // MARK: Update
@@ -247,7 +251,6 @@ int main() {
       model = glm::translate(model, LIGHT_POS);
       model = glm::scale(model, glm::vec3(0.5f));
 
-      lightProgram.clearUniforms();
       lightProgram.setUniformMat4fv("model", glm::value_ptr(model));
       lightProgram.setUniformMat4fv("view", glm::value_ptr(view));
       lightProgram.setUniformMat4fv("projection", glm::value_ptr(projection));
