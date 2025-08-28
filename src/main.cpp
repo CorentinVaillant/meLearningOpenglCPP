@@ -5,12 +5,11 @@ Copyright 2025 Corentin Vaillant
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-#include <iostream>
-
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <iostream>
 
 #include "Camera.hpp"
 #include "GlBuffer.hpp"
@@ -142,7 +141,7 @@ void processInput(GLFWwindow* window) {
 
 int main() {
   // MARK: Init
-  do {
+  {
     initGlfw();
     auto window = initWindow();
 
@@ -166,7 +165,7 @@ int main() {
     Texture diffuse("../resources/container2.png", GL_RGBA, GL_RGBA);
     Texture specular("../resources/container2_specular.png", GL_RGBA, GL_RGBA);
     Texture emission("../resources/matrix.jpg", GL_RGBA, GL_RGB);
-    
+
     // Programs
     Program cubeProgram(Program(cubeVertShaderSrc, cubeFragShaderSrc));
     Program lightProgram(Program(cubeVertShaderSrc, lightFragShaderSrc));
@@ -195,7 +194,7 @@ int main() {
       processInput(window);
 
       // renders
-      const glm::vec3 CLEAR_COLOR = glm::vec3(0.1f, 0.5f, 0.1f);
+      const glm::vec3 CLEAR_COLOR = glm::vec3(0.1f);
       glClearColor(CLEAR_COLOR.r, CLEAR_COLOR.g, CLEAR_COLOR.b, 1.0f);
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -203,8 +202,6 @@ int main() {
       glm::mat4 view = camera.getViewMat();
 
       // Cubes
-      const auto LIGHT_POS = glm::vec3(1.2f, 1.0f, 2.0f);
-      auto timePalette = palette(time / 2);
 
       cubeVAO.bind();
       for (int i(0); i < CUBE_POSITION_NUMBER; i++) {
@@ -213,22 +210,60 @@ int main() {
         model = glm::rotate(
             model, time,
             glm::vec3(cos(i), sin(i),
-            (static_cast<float>(i) / CUBE_POSITION_NUMBER)));
+                      (static_cast<float>(i) / CUBE_POSITION_NUMBER)));
 
         cubeProgram.setUniform3f("objectColor", 1.0f, 0.5f, 0.31f);
 
-        cubeProgram.setUniform3f("light.position", camera.getPosition());
-        cubeProgram.setUniform3f("light.direction", camera.getFront());
-        cubeProgram.setUniform1f("light.cutOff", glm::cos(glm::radians(12.5f)));
-        cubeProgram.setUniform1f("light.outerCutOff",
+        // Sun
+        cubeProgram.setUniform3f("dirLight.direction", -0.2f, -1.0f, -0.3f);
+        cubeProgram.setUniform3f("dirLight.ambient", CLEAR_COLOR);
+        cubeProgram.setUniform3f("dirLight.diffuse", CLEAR_COLOR);
+        cubeProgram.setUniform3f("dirLight.specular", CLEAR_COLOR);
+
+        // Points
+        char* attribName = new char[32];
+        for (uint j(0); j < POINT_LIGHT_POSITION_NUMBER; j++) {
+          auto timePalette = palette(time / (j + 2));
+
+          snprintf(attribName, 32, "pointLights[%d].%s", j, "position");
+          cubeProgram.setUniform3f(attribName, pointLightPositions[j]);
+
+          snprintf(attribName, 32, "pointLights[%d].%s", j, "constant");
+          cubeProgram.setUniform1f(attribName, 1.0f);
+
+          snprintf(attribName, 32, "pointLights[%d].%s", j, "linear");
+          cubeProgram.setUniform1f(attribName, 0.09f);
+
+          snprintf(attribName, 32, "pointLights[%d].%s", j, "quadratic");
+          cubeProgram.setUniform1f(attribName, 0.032f);
+
+          snprintf(attribName, 32, "pointLights[%d].%s", j, "ambient");
+          cubeProgram.setUniform3f(attribName, timePalette);
+
+          snprintf(attribName, 32, "pointLights[%d].%s", j, "diffuse");
+          cubeProgram.setUniform3f(attribName, CLEAR_COLOR);
+
+          snprintf(attribName, 32, "pointLights[%d].%s", j, "specular");
+          cubeProgram.setUniform3f(attribName, timePalette);
+        }
+        delete[] attribName;
+
+        // Spot
+        const glm::vec3 CAMERA_SPOT_COLOR(1.0f);
+        cubeProgram.setUniform3f("spotLight.position", camera.getPosition());
+        cubeProgram.setUniform3f("spotLight.direction", camera.getFront());
+        cubeProgram.setUniform1f("spotLight.cutOff",
+                                 glm::cos(glm::radians(12.5f)));
+        cubeProgram.setUniform1f("spotLight.outerCutOff",
                                  glm::cos(glm::radians(15.0f)));
 
-        cubeProgram.setUniform3f("light.ambient", CLEAR_COLOR);
-        cubeProgram.setUniform3f("light.diffuse", 0.8f, 0.8f, 0.8f);
-        cubeProgram.setUniform3f("light.specular", timePalette);
-        cubeProgram.setUniform1f("light.constant", 1.0f);
-        cubeProgram.setUniform1f("light.linear", 0.09f);
-        cubeProgram.setUniform1f("light.quadratic", 0.032f);
+        cubeProgram.setUniform3f("spotLight.ambient", CLEAR_COLOR);
+        cubeProgram.setUniform3f("spotLight.diffuse", CAMERA_SPOT_COLOR);
+        cubeProgram.setUniform3f("spotLight.specular", CAMERA_SPOT_COLOR);
+
+        cubeProgram.setUniform1f("spotLight.constant", 1.0f);
+        cubeProgram.setUniform1f("spotLight.linear", 0.09f);
+        cubeProgram.setUniform1f("spotLight.quadratic", 0.032f);
 
         cubeProgram.setUniform3f("viewPos", camera.getPosition());
 
@@ -247,18 +282,22 @@ int main() {
       }
 
       // Lamp
-      glm::mat4 model = glm::mat4(1.0f);
-      model = glm::translate(model, LIGHT_POS);
-      model = glm::scale(model, glm::vec3(0.5f));
 
-      lightProgram.setUniformMat4fv("model", glm::value_ptr(model));
-      lightProgram.setUniformMat4fv("view", glm::value_ptr(view));
-      lightProgram.setUniformMat4fv("projection", glm::value_ptr(projection));
-      lightProgram.setUniform3f("color", timePalette);
-      lightProgram.useProgram();
+      for (uint i(0); i < POINT_LIGHT_POSITION_NUMBER; i++) {
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::translate(model, pointLightPositions[i]);
+        model = glm::scale(model, glm::vec3(0.5f));
 
-      lightCubeVAO.bind();
-      glDrawArrays(GL_TRIANGLES, 0, 36);
+        auto timePalette = palette(time / (i + 2));
+        lightProgram.setUniformMat4fv("model", glm::value_ptr(model));
+        lightProgram.setUniformMat4fv("view", glm::value_ptr(view));
+        lightProgram.setUniformMat4fv("projection", glm::value_ptr(projection));
+        lightProgram.setUniform3f("color", timePalette);
+        lightProgram.useProgram();
+
+        lightCubeVAO.bind();
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+      }
 
       // check and call events and swap the buffers
       glfwSwapBuffers(window);
@@ -270,6 +309,6 @@ int main() {
 
     // MARK: Cleaning
     //[...]
-  } while (0);
+  }
   glfwTerminate();
 }

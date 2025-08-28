@@ -65,9 +65,9 @@ public:
 	void setUniform2f(const char* name, float value[2]);
 
 	void setUniform2b(const char* name, glm::vec<2,bool> value) 			{setUniform2b(name,value.x,value.y);}
-	void setUnifor2i(const char* name, glm::vec<2,int> value) 			{setUniform2i(name,value.x,value.y);}
-	void setUnifor2u(const char* name, glm::vec<2,unsigned int> value) 	{setUniform2u(name,value.x,value.y);}
-	void setUnifor2f(const char* name, glm::vec<2,float> value)			{setUniform2f(name,value.x,value.y);}
+	void setUniform2i(const char* name, glm::vec<2,int> value) 			{setUniform2i(name,value.x,value.y);}
+	void setUniform2u(const char* name, glm::vec<2,unsigned int> value) 	{setUniform2u(name,value.x,value.y);}
+	void setUniform2f(const char* name, glm::vec<2,float> value)			{setUniform2f(name,value.x,value.y);}
 
 	void setUniform3b(const char* name, bool v1, bool v2 , bool v3);
 	void setUniform3i(const char* name, int v1, int v2 , int v3);
