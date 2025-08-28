@@ -1,53 +1,38 @@
 #pragma once
 
+#include <glad/glad.h>
+
 #include <fstream>
 #include <string>
 
-#include <glad/glad.h>
+template<const GLenum SHADER_TYPE>
+class Shader {
+  GLint m_glId;
 
+ public:
+  //-- constructors --
+  Shader(const char* source);
+  Shader(std::string source);
+  Shader(std::fstream& source_stream);
 
-class Shader
-{
-	GLenum m_shader_type;
-	std::string m_source;
+  Shader(const Shader&) = delete;
+  Shader& operator=(const Shader&) = delete;
 
-	GLint m_compiled_shader;
+  Shader(Shader&& other) noexcept;
+  Shader& operator=(Shader&& other) noexcept;
 
-public:
-	//-- constructors --
-	Shader(GLenum type, const char* source);
-	Shader(GLenum type, std::string source);
-	Shader(GLenum type, std::fstream& source_stream);
+  //-- methods --
+  GLuint getShader() const;
 
-	Shader(const Shader&) = delete;
-	Shader& operator=(const Shader&) = delete;
+  //-- destructor --
+  ~Shader();
 
-	Shader(Shader&& other) noexcept;
-	Shader& operator=(Shader&& other) noexcept;
-
-	//-- methods --
-	GLuint getShader();
-	void deleteShader();
-
-
-	//-- destructor --
-	~Shader();
-
-private:
-	//-- private methods --
-	int compileShader();
+ private:
+  //-- private methods --
+  static int compileShader(GLint glId, const char* source);
 };
 
-class VertexShader : public Shader {
-public:
-	VertexShader(const char* source) : Shader(GL_VERTEX_SHADER, source) {}
-	VertexShader(std::string source) : Shader(GL_VERTEX_SHADER, source) {}
-	VertexShader(std::fstream& source_stream) : Shader(GL_VERTEX_SHADER, source_stream) {}
-};
 
-class FragmentShader : public Shader {
-public:
-	FragmentShader(const char* source) : Shader(GL_FRAGMENT_SHADER, source) {}
-	FragmentShader(std::string source) : Shader(GL_FRAGMENT_SHADER, source) {}
-	FragmentShader(std::fstream& source_stream) : Shader(GL_FRAGMENT_SHADER, source_stream) {}
-};
+// -- Alias --
+using VertexShader = Shader<GL_VERTEX_SHADER>;
+using FragmentShader = Shader<GL_FRAGMENT_SHADER>;

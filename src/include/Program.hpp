@@ -23,27 +23,30 @@ class Program
 		// ~UniformData(){delete data;}
 
 	};
-
 	struct TextureData
 	{
 		std::string name;
 		GLuint glId;
 	};
 
-	Shader m_vert, m_frag;
-	GLint m_program;
+	VertexShader m_vert;
+	FragmentShader m_frag;
+
+	GLint m_glId;
 
 	std::unordered_map<std::string,Program::UniformData> m_uniformPool;
 
 	std::vector<Program::TextureData> m_texturePool;
 
 public:
-	Program(Shader&& vert_shad, Shader&& frag_shad);
+	Program(VertexShader&& vert_shad, FragmentShader&& frag_shad);
 	Program(const char* vert_shad_src, const char* frag_shad_src);
 	Program(Program&& rvalue);
 
-	const Shader& getVertShader() const;
-	const Shader& getFragShader() const;
+	//Uniforms
+
+	const VertexShader& getVertShader() const;
+	const FragmentShader& getFragShader() const;
 	GLint getUniformLocation(const char* name);
 
 	void setUniform1b(const char* name, bool value);
@@ -88,15 +91,14 @@ public:
 	void clearUniforms();
 
 	void useProgram();
-	void deleteProgram();
-	void deleteShaders();
 
 	~Program();
 
 	Program(Program&) = delete;
 
 private:
-    void createGlProgram();
+	static void attachGlShader(GLint glProgramId, VertexShader& vs, FragmentShader& fs);
+
 	template<typename T> void setUniformData(const char* name, GLenum glType, size_t number ,T* data);
 	void useUniformData();
 

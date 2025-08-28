@@ -8,67 +8,54 @@
 using std::byte;
 
 
-Program::Program(Shader&& vert_shad, Shader&& frag_shad)
-    : m_vert(std::move(vert_shad)), m_frag(std::move(frag_shad)), m_program(0) 
-    {}
+Program::Program(VertexShader&& vert_shad, FragmentShader&& frag_shad)
+    : m_vert(std::move(vert_shad)), m_frag(std::move(frag_shad))
+    {
+        m_glId = glCall(glCreateProgram());
+        attachGlShader(m_glId,m_vert,m_frag);
+    }
 
 Program::Program(const char* vert_shad_src, const char* frag_shad_src)
-    : m_vert(VertexShader(vert_shad_src)), m_frag(FragmentShader(frag_shad_src)), m_program(0) 
+    : Program(VertexShader(vert_shad_src), FragmentShader(frag_shad_src))
     {}
 
 Program::Program(Program&& rvalue)
     : m_vert(std::move(rvalue.m_vert)), 
     m_frag(std::move(rvalue.m_frag)), 
-    m_program(rvalue.m_program) 
+    m_glId(rvalue.m_glId) 
     {
-        rvalue.m_program = 0;
+        rvalue.m_glId = 0;
     }
 
 
 Program::~Program() {
-    if (m_program != 0) {
-        glDeleteProgram(m_program);
+    if (m_glId != 0) {
+        glDeleteProgram(m_glId);
+        m_glId = 0;
     }
 }
 
 void Program::useProgram() {
-    if (m_program == 0) {
-        createGlProgram();
-    }
-    glCall(glUseProgram(m_program));
+    glCall(glUseProgram(m_glId));
     useUniformData();
 }
 
-void Program::deleteProgram() {
-    if (m_program != 0) {
-        glDeleteProgram(m_program);
-        m_program = 0;
-    }
-}
-
-void Program::deleteShaders() {
-    m_frag.deleteShader();
-    m_vert.deleteShader();
-}
-
-const Shader& Program::getVertShader() const{
+const VertexShader& Program::getVertShader() const{
     return m_vert;
 }
 
-const Shader& Program::getFragShader() const{
+const FragmentShader& Program::getFragShader() const{
     return m_frag;
 }
 
 // -- Uniforms functions --
 
 GLint Program::getUniformLocation(const char* name) {
-    if(!m_program)
-        createGlProgram();
-    return glGetUniformLocation(m_program, name);
+    return glCall(glGetUniformLocation(m_glId, name));
 }
 
 template<typename T>
-void Program::setUniformData(const char* name, GLenum glType,size_t count ,T* data){
+void Program::setUniformData(const char* name, GLenum glType,size_t count ,T* data){    
     Program::UniformData ud;
     ud.glType = glType;
     ud.glLocation = getUniformLocation(name);
@@ -134,6 +121,7 @@ void Program::setUniform3u(const char* name, unsigned int v1, unsigned int v2, u
 void Program::setUniform3f(const char* name, float v1, float v2, float v3) {
     float tab[3] = { v1, v2, v3 };
     setUniform3f(name, tab);
+
 }
 
 // Uniform mat4
@@ -176,12 +164,12 @@ void Program::useUniformData(){
     for (TextureData& td : m_texturePool) {
         if (numTexture >= (unsigned int)max_textures) break;
 
-        GLint glLoc = glGetUniformLocation(m_program, td.name.c_str());
+        GLint glLoc = glCall(glGetUniformLocation(m_glId, td.name.c_str()));
         if (glLoc == -1) continue;
 
-        glActiveTexture(GL_TEXTURE0 + numTexture);
-        glBindTexture(GL_TEXTURE_2D, td.glId);
-        glUniform1i(glLoc, numTexture);
+        glCall(glActiveTexture(GL_TEXTURE0 + numTexture));
+        glCall(glBindTexture(GL_TEXTURE_2D, td.glId));
+        glCall(glUniform1i(glLoc, numTexture));
 
         numTexture++;
     }
@@ -288,22 +276,18 @@ void Program::clearUniforms(){
     m_texturePool.clear();
 }
 
-void Program::createGlProgram(){
+void Program::attachGlShader(GLint glProgramId, VertexShader& vs, FragmentShader& fs){
 
-    m_program = glCreateProgram();
-    if (!m_program) {
-        throw "ERROR::PROGRAM::CREATION_FAILED \n";
-    }
-    glAttachShader(m_program, m_vert.getShader());
-    glAttachShader(m_program, m_frag.getShader());
+    glCall(glAttachShader(glProgramId, vs.getShader()));
+    glCall(glAttachShader(glProgramId, fs.getShader()));
 
-    glLinkProgram(m_program);
+    glCall(glLinkProgram(glProgramId));
 
     int success;
     char info_log[512];
-    glGetProgramiv(m_program, GL_LINK_STATUS, &success);
+    glCall(glGetProgramiv(glProgramId, GL_LINK_STATUS, &success));
     if (!success) {
-        glGetProgramInfoLog(m_program, 512, NULL, info_log);
+        glCall(glGetProgramInfoLog(glProgramId, 512, NULL, info_log));
         std::string error = "ERROR::PROGRAM::LINK_FAILED\n";
         error += info_log;
         throw error;

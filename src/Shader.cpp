@@ -1,101 +1,84 @@
 #include "Shader.hpp"
 
-#include "glad/glad.h"
 #include <iostream>
 
+#include "gl_utils.hpp"
+#include "glad/glad.h"
+
 //-- Constructors --
+template<const GLenum SHADER_TYPE>
+Shader<SHADER_TYPE>::Shader(const char* source) {
+  glCall(m_glId = glCreateShader(SHADER_TYPE));
+  compileShader(m_glId, source);
+}
 
+template<const GLenum SHADER_TYPE>
+Shader<SHADER_TYPE>::Shader(std::string source)
+    : Shader(source.c_str()) {}
 
-Shader::Shader(GLenum type, std::string source) 
-	: m_shader_type(type),m_source(source), m_compiled_shader(0) {}
+template<const GLenum SHADER_TYPE>
+Shader<SHADER_TYPE>::Shader(std::fstream& source_stream)
+    : Shader<SHADER_TYPE>([&]() {
+        std::string line, result;
+        while (std::getline(source_stream, line)) result += line + "\n";
+        return result;
+      }()) {}
 
-Shader::Shader(GLenum type, const char* source): Shader(type,std::string(source)) {}
+template<const GLenum SHADER_TYPE>
+Shader<SHADER_TYPE>::Shader(Shader&& other) noexcept
+    : m_glId(other.m_glId) {
+  other.m_glId = 0;
+}
 
-Shader::Shader(GLenum type, std::fstream& source_stream)
-	: Shader(type, [&]() {
-	std::string line, result;
-	while (std::getline(source_stream, line))
-		result += line + "\n";
-	return result;
-		}()) {}
+template<const GLenum SHADER_TYPE>
+Shader<SHADER_TYPE>& Shader<SHADER_TYPE>::operator=(Shader<SHADER_TYPE>&& other) noexcept {
+  if (this != &other) {
+    m_glId = other.m_glId;
 
+    other.m_glId = 0;
+  }
 
-Shader::Shader(Shader&& other) noexcept:
-    m_shader_type(other.m_shader_type),
-    m_source(std::move(other.m_source)),
-    m_compiled_shader(other.m_compiled_shader)
-    {
-        other.m_compiled_shader = 0;
-    }
-
-Shader& Shader::operator=(Shader&& other) noexcept {
-    if (this != &other) {
-        deleteShader();
-
-        m_shader_type = other.m_shader_type;
-        m_source = std::move(other.m_source);
-        m_compiled_shader = other.m_compiled_shader;
-
-        other.m_compiled_shader = 0;
-    }
-
-    return *this;
+  return *this;
 }
 
 //-- Destructor --
-Shader::~Shader() {
-    deleteShader();
+template<const GLenum SHADER_TYPE>
+Shader<SHADER_TYPE>::~Shader() {
+  if (m_glId > 0) {
+    glDeleteShader(m_glId);
+    m_glId = 0;
+  }
 }
 
 //-- Methods --
 
-GLuint Shader::getShader(){
-    if (m_compiled_shader <= 0) {
-        int success = compileShader();
-        if (success <= 0) {
-            std::string error = "Could not compile shader, return code :";
-            error += std::to_string(success);
-            throw error;
-        }
-    }
+template<const GLenum SHADER_TYPE>
+GLuint Shader<SHADER_TYPE>::getShader() const { return m_glId; }
 
-    return m_compiled_shader;
+template<const GLenum SHADER_TYPE>
+int Shader<SHADER_TYPE>::compileShader(GLint glId, const char* source) {
+  // check_compilation;
+
+  glCall(glShaderSource(glId, 1, &source, nullptr));
+  glCall(glCompileShader(glId));
+
+  int success;
+  char info_log[512];
+  glCall(glGetShaderiv(glId, GL_COMPILE_STATUS, &success));
+
+  if (!success) {
+    glCall(glGetShaderInfoLog(glId, 512, NULL, info_log));
+    auto shaderTypeStr = SHADER_TYPE == GL_FRAGMENT_SHADER ? "FRAGMENT_"
+                         : SHADER_TYPE == GL_VERTEX_SHADER ? "VERTEX_"
+                                                    : "";
+    std::cerr << "ERROR::" << shaderTypeStr << "SHADER::COMPILATION_FAILED\n"
+              << info_log << std::endl;
+    return success;
+  }
+
+  return success ? 1 : 0;
 }
 
-void Shader::deleteShader() {
-    if (m_compiled_shader > 0) {
-        glDeleteShader(m_shader_type);
-        m_compiled_shader = 0;
-    }
-}
-
-int Shader::compileShader(){
-
-    //GLint& shader, const GLenum shader_type, const char* shader_src, bool check_compilation;
-
-    m_compiled_shader = glCreateShader(m_shader_type);
-
-    const char* shader_src = m_source.c_str();
-    glShaderSource(m_compiled_shader, 1, &shader_src, nullptr);
-    glCompileShader(m_compiled_shader);
-
-
-    int  success;
-    char info_log[512];
-    glGetShaderiv(m_compiled_shader, GL_COMPILE_STATUS, &success);
-
-
-    if (!success) {
-        glGetShaderInfoLog(m_compiled_shader, 512, NULL, info_log);
-        auto shaderTypeStr = m_shader_type == GL_FRAGMENT_SHADER 
-            ? "FRAGMENT_" 
-            : m_shader_type == GL_VERTEX_SHADER
-                ? "VERTEX_"
-                : ""
-            ;
-        std::cerr << "ERROR::"<<shaderTypeStr<< "SHADER::COMPILATION_FAILED\n" << info_log << std::endl;
-        return success;
-    }
-
-    return success ? 1 : 0;
-}
+// -- Alias --
+template class Shader<GL_VERTEX_SHADER>;
+template class Shader<GL_FRAGMENT_SHADER>;

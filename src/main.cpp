@@ -166,7 +166,7 @@ int main() {
     Texture diffuse("../resources/container2.png", GL_RGBA, GL_RGBA);
     Texture specular("../resources/container2_specular.png", GL_RGBA, GL_RGBA);
     Texture emission("../resources/matrix.jpg", GL_RGBA, GL_RGB);
-
+    
     // Programs
     Program cubeProgram(Program(cubeVertShaderSrc, cubeFragShaderSrc));
     Program lightProgram(Program(cubeVertShaderSrc, lightFragShaderSrc));
@@ -177,6 +177,8 @@ int main() {
 
     lastFrame = glfwGetTime();
     dt = 0;
+
+    throwOnGlError("Error in init");
 
     // MARK: Update
 
@@ -225,6 +227,7 @@ int main() {
         cubeProgram.setUniform1f("light.quadratic", 0.032f);
 
         cubeProgram.setUniform3f("viewPos", camera.getPosition());
+
         cubeProgram.setUniformTexture2D("material.diffuse", diffuse);
         cubeProgram.setUniformTexture2D("material.specular", specular);
         cubeProgram.setUniformTexture2D("material.emission", emission);
